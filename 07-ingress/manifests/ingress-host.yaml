@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: por-host
+  namespace: demo
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: a.localtest.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app-a
+                port:
+                  number: 80
+    - host: b.localtest.me
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: app-b
+                port:
+                  number: 80

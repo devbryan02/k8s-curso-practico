@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: por-path
+  namespace: demo
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: apps.localtest.me
+      http:
+        paths:
+          - path: /a
+            pathType: Prefix
+            backend:
+              service:
+                name: app-a
+                port:
+                  number: 80
+          - path: /b
+            pathType: Prefix
+            backend:
+              service:
+                name: app-b
+                port:
+                  number: 80

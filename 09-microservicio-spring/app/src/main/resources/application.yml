@@ -1,0 +1,39 @@
+server:
+  port: 8080
+  shutdown: graceful
+
+spring:
+  application:
+    name: products-api
+  lifecycle:
+    timeout-per-shutdown-phase: 20s
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/productsdb?useSSL=false&allowPublicKeyRetrieval=true}
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: update          # solo para el curso; en producción usa Flyway/Liquibase
+    open-in-view: false
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Se usa jwk-set-uri (URL INTERNA del cluster) en vez de issuer-uri,
+          # porque el issuer público (keycloak.localtest.me) no resuelve desde dentro del pod.
+          jwk-set-uri: ${JWK_SET_URI:http://localhost:8081/realms/curso/protocol/openid-connect/certs}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true

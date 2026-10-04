@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm
+  namespace: dev
+data:
+  curso-realm.json: |
+    {
+      "realm": "curso",
+      "enabled": true,
+      "sslRequired": "none",
+      "registrationAllowed": false,
+      "clients": [
+        {
+          "clientId": "curso-client",
+          "name": "Cliente del curso",
+          "enabled": true,
+          "publicClient": true,
+          "directAccessGrantsEnabled": true,
+          "standardFlowEnabled": true,
+          "redirectUris": ["*"],
+          "webOrigins": ["*"]
+        }
+      ],
+      "users": [
+        {
+          "username": "alice",
+          "enabled": true,
+          "email": "alice@example.com",
+          "emailVerified": true,
+          "firstName": "Alice",
+          "lastName": "Curso",
+          "credentials": [
+            { "type": "password", "value": "alice123", "temporary": false }
+          ]
+        }
+      ]
+    }

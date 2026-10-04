@@ -1,0 +1,7 @@
+products-api desplegado como release "{{ .Release.Name }}" en el namespace "{{ .Release.Namespace }}".
+
+{{- if .Values.ingress.enabled }}
+Prueba:  curl http://{{ .Values.ingress.host }}/api/public/ping
+{{- else }}
+Prueba:  kubectl port-forward svc/{{ include "products-api.fullname" . }} 8080:{{ .Values.service.port }} -n {{ .Release.Namespace }}
+{{- end }}

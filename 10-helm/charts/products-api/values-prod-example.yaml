@@ -1,0 +1,12 @@
+# Ejemplo de override por entorno:  helm upgrade ... -f values-prod-example.yaml
+replicaCount: 3
+image:
+  tag: "1.0.1"
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    memory: 1Gi
+ingress:
+  host: api.prod.localtest.me

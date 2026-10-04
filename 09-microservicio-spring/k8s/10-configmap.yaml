@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: products-api-config
+  namespace: dev
+data:
+  DB_URL: "jdbc:mysql://mysql:3306/productsdb?useSSL=false&allowPublicKeyRetrieval=true"
+  JWK_SET_URI: "http://keycloak:8080/realms/curso/protocol/openid-connect/certs"
+  JAVA_TOOL_OPTIONS: "-Duser.timezone=UTC"

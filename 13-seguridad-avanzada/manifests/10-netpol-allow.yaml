@@ -1,0 +1,89 @@
+# La API recibe tráfico del Ingress y de Prometheus (ns monitoring)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-to-products-api
+  namespace: dev
+spec:
+  podSelector:
+    matchLabels:
+      app: products-api
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: monitoring
+      ports:
+        - port: 8080
+---
+# MySQL solo habla con la API
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-to-mysql
+  namespace: dev
+spec:
+  podSelector:
+    matchLabels:
+      app: mysql
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: products-api
+      ports:
+        - port: 3306
+---
+# PostgreSQL solo habla con Keycloak
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-to-postgres
+  namespace: dev
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: keycloak
+      ports:
+        - port: 5432
+---
+# Keycloak recibe: el Ingress, la API de dev (JWKS) y las APIs de qa/pre/prod (módulo 12)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-to-keycloak
+  namespace: dev
+spec:
+  podSelector:
+    matchLabels:
+      app: keycloak
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+        - podSelector:
+            matchLabels:
+              app: products-api
+        - namespaceSelector:
+            matchExpressions:
+              - key: entorno
+                operator: In
+                values: ["qa", "pre", "prod"]
+          podSelector:
+            matchLabels:
+              app: products-api
+      ports:
+        - port: 8080

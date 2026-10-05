@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: servidor
+  namespace: lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: servidor
+  template:
+    metadata:
+      labels:
+        app: servidor
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: servidor
+  namespace: lab
+spec:
+  selector:
+    app: servidor
+  ports:
+    - port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: solo-clientes
+  namespace: lab
+spec:
+  podSelector:
+    matchLabels:
+      app: servidor
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: clientes
+      ports:
+        - port: 80
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cliente
+  namespace: lab
+  labels:
+    app: cliente
+spec:
+  containers:
+    - name: cliente
+      image: busybox:1.36
+      command: ["sleep", "3600"]

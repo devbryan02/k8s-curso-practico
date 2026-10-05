@@ -25,7 +25,7 @@ Instalados en Windows y disponibles en el `PATH`:
 
 ## Qué terminal usar
 
-Los comandos del curso están escritos en sintaxis **bash** (tuberías, `$(...)`, heredocs, `export`) y los scripts de `scripts/` y `13-proyecto-final/` son `.sh`.
+Los comandos del curso están escritos en sintaxis **bash** (tuberías, `$(...)`, heredocs, `export`) y los scripts de `scripts/` y `15-proyecto-final/` son `.sh`.
 
 - **Git Bash** (recomendado): ejecuta tal cual los comandos y los scripts (`./scripts/up.sh`).
 - **PowerShell**: sirve para los comandos simples de `kubectl`, `helm`, `kind` y `docker`. Cuando un bloque use sintaxis bash, ejecútalo en Git Bash.

@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tienda
+  namespace: lab
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: tienda
+  template:
+    metadata:
+      labels:
+        app: tienda
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 80
+            periodSeconds: 5

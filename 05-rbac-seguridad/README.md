@@ -33,7 +33,7 @@
 
 **¿Por qué `securityContext`?** Si alguien explota tu app, el daño depende de los privilegios del contenedor. Corriendo como usuario no-root, sin capabilities y con FS de solo lectura, el atacante casi no puede hacer nada dentro. Es defensa en profundidad, gratis.
 
-> Nota: el CNI de kind (kindnet) no aplica `NetworkPolicy`. Puedes crearlas pero **no tendrán efecto** a menos que instales Calico/Cilium.
+> Nota: este curso instala Calico en lugar de kindnet, así que las `NetworkPolicy` sí se aplican. Lo practicas en el [módulo 13](../13-seguridad-avanzada/README.md).
 
 Cómo se resuelve un permiso RBAC en esta práctica:
 

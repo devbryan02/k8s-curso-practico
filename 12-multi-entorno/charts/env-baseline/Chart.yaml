@@ -1,0 +1,5 @@
+apiVersion: v2
+name: env-baseline
+description: Base de cada entorno - ResourceQuota, LimitRange y permisos del deployer
+type: application
+version: 0.1.0

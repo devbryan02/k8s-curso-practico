@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: api-arranque
+  namespace: lab
+spec:
+  containers:
+    - name: api
+      image: busybox:1.36
+      command:
+        - sh
+        - -c
+        - |
+          echo "Iniciando api..."
+          test -n "$DB_HOST" || { echo "ERROR: no se pudo conectar a la base de datos" >&2; exit 1; }
+          sleep 3600
+      env:
+        - name: DB_HOSTNAME
+          value: mysql.dev.svc.cluster.local

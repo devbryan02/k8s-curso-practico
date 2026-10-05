@@ -130,7 +130,7 @@ kubectl delete namespace demo
 1. Monta solo la key `DB_PASSWORD` del Secret como archivo `/secrets/password`.
 2. Cambia el ConfigMap y comprueba cuánto tarda en reflejarse el archivo montado en `/config` (`kubectl exec consumer -n demo -- cat /config/application.properties`). ¿Y la variable de entorno?
 3. Marca el ConfigMap como `immutable: true` e intenta editarlo. ¿Qué ocurre y cuándo es útil?
-4. Reflexión: ¿por qué **no** debes commitear `secret.yaml` a Git? ¿Qué alternativas hay? (lo retomamos en el módulo 12).
+4. Reflexión: ¿por qué **no** debes commitear `secret.yaml` a Git? ¿Qué alternativas hay? (lo retomamos con Sealed Secrets en el módulo 13).
 
 <details><summary>Soluciones</summary>
 

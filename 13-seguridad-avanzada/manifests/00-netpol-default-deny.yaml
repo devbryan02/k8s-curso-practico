@@ -1,0 +1,10 @@
+# Todo el tráfico de ENTRADA a los pods de dev queda denegado.
+# A partir de aquí solo pasa lo que otra NetworkPolicy permita explícitamente.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: dev
+spec:
+  podSelector: {}          # todos los pods del namespace
+  policyTypes: ["Ingress"]

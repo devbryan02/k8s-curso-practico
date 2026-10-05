@@ -70,7 +70,7 @@ Consecuencias importantes:
 2. Los puertos del cluster no se exponen solos: hay que mapearlos en la config (`extraPortMappings`).
 3. El storage por defecto es `local-path` (`StorageClass standard`): los datos viven dentro del contenedor del nodo.
 4. No hay LoadBalancer real (existe `cloud-provider-kind` / MetalLB, pero no los usaremos).
-5. El CNI por defecto (kindnet) **no aplica NetworkPolicies**.
+5. kind trae su propio CNI (kindnet), que **no aplica NetworkPolicies**. Por eso este curso lo desactiva e instala **Calico**, que sí las aplica (módulo 13).
 
 ## La configuración
 
@@ -95,12 +95,18 @@ flowchart LR
 cd 01-cluster-kind
 kind create cluster --config kind-config.yaml
 
+# Los nodos quedan NotReady hasta instalar un CNI (la config desactiva kindnet)
+kubectl get nodes
+kubectl apply -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.2/manifests/calico.yaml
+kubectl rollout status daemonset/calico-node -n kube-system --timeout=300s
+kubectl wait --for=condition=Ready nodes --all --timeout=300s
+
 kubectl cluster-info --context kind-curso
 kubectl get nodes -o wide
 kubectl get pods -A
 ```
 
-> **¿Qué acaba de pasar?** kind lanzó 3 contenedores con la imagen `kindest/node`, ejecutó `kubeadm init` en el control-plane y `kubeadm join` en los workers. Instaló el CNI (kindnet) y CoreDNS, y escribió el contexto `kind-curso` en tu `~/.kube/config`. Los Pods de `kube-system` que ves son el propio control plane corriendo como Pods.
+> **¿Qué acaba de pasar?** kind lanzó 3 contenedores con la imagen `kindest/node`, ejecutó `kubeadm init` en el control-plane y `kubeadm join` en los workers. No instaló CNI porque `kind-config.yaml` pone `disableDefaultCNI: true`: por eso los nodos están `NotReady` y CoreDNS en `Pending` hasta que aplicas Calico, que crea la red de pods (192.168.0.0/16) y ejecuta las NetworkPolicies. Escribió el contexto `kind-curso` en tu `~/.kube/config`. Los Pods de `kube-system` que ves son el propio control plane corriendo como Pods.
 
 Mira los contenedores que creó:
 
@@ -118,7 +124,7 @@ crictl ps
 exit
 ```
 
-> **¿Qué acaba de pasar?** Dentro del nodo no hay Docker: kubelet habla con `containerd` por la interfaz CRI. `crictl` es el cliente de esa interfaz. Verás `kube-proxy` y `kindnet`, que corren en todos los nodos como DaemonSets.
+> **¿Qué acaba de pasar?** Dentro del nodo no hay Docker: kubelet habla con `containerd` por la interfaz CRI. `crictl` es el cliente de esa interfaz. Verás `kube-proxy` y `calico-node`, que corren en todos los nodos como DaemonSets.
 
 ### Contextos de kubectl
 
@@ -161,7 +167,7 @@ flowchart LR
 Desde la raíz del curso:
 
 ```bash
-./scripts/up.sh      # crea cluster + ingress-nginx
+./scripts/up.sh      # crea cluster + Calico + ingress-nginx
 ./scripts/down.sh    # elimina el cluster
 ```
 
@@ -182,7 +188,7 @@ Desde la raíz del curso:
 
 <details><summary>Soluciones</summary>
 
-1. `kind delete cluster --name curso && kind create cluster --config kind-config.yaml`
+1. `./scripts/down.sh && ./scripts/up.sh` (recrea el cluster e instala Calico e ingress-nginx)
 2. `kind create cluster --name lab2`; `kubectl config use-context kind-lab2`; `kind delete cluster --name lab2`
 3. El nodo pasa a `NotReady` tras ~40 s y vuelve a `Ready` al iniciarlo.
 4. `kubectl version` y las tags de `kindest/node` en las releases de kind.

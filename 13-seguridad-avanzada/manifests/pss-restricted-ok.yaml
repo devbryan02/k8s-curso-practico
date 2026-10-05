@@ -1,0 +1,21 @@
+# Pod que cumple el perfil "restricted" de Pod Security Standards
+apiVersion: v1
+kind: Pod
+metadata:
+  name: restricted-ok
+  namespace: seguro
+spec:
+  automountServiceAccountToken: false
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    seccompProfile:
+      type: RuntimeDefault
+  containers:
+    - name: app
+      image: busybox:1.36
+      command: ["sh", "-c", "id; sleep 3600"]
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop: ["ALL"]

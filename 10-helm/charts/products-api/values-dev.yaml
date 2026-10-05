@@ -1,0 +1,4 @@
+# Override para el entorno dev (se aplica sobre values.yaml)
+replicaCount: 1
+ingress:
+  host: api.dev.localtest.me

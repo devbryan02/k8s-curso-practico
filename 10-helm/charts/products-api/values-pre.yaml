@@ -1,0 +1,7 @@
+# Override para el entorno pre (se aplica sobre values.yaml)
+# Keycloak es un servicio compartido que vive en el namespace dev.
+replicaCount: 2
+config:
+  JWK_SET_URI: "http://keycloak.dev.svc.cluster.local:8080/realms/curso/protocol/openid-connect/certs"
+ingress:
+  host: api.pre.localtest.me

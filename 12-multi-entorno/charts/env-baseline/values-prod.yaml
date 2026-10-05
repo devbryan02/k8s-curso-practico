@@ -1,0 +1,4 @@
+quota:
+  requestsMemory: 3Gi
+# En prod el deployer solo mira; los cambios los aplica un administrador
+deployerClusterRole: view

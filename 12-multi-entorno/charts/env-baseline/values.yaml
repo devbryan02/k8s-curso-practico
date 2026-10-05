@@ -1,0 +1,18 @@
+# Valores por defecto; cada entorno los sobrescribe en values-<env>.yaml
+quota:
+  requestsCpu: "2"
+  requestsMemory: 2Gi
+  limitsMemory: 4Gi
+  pods: "15"
+
+limitRange:
+  defaultRequest:
+    cpu: 50m
+    memory: 64Mi
+  default:
+    cpu: 200m
+    memory: 256Mi
+
+# ClusterRole que recibe la ServiceAccount "deployer" en este namespace:
+# edit = puede crear/cambiar workloads; view = solo lectura
+deployerClusterRole: edit

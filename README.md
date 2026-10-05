@@ -1,6 +1,6 @@
 # Curso práctico de Kubernetes con kind
 
-De cero (con Docker y conceptos básicos) hasta desplegar un **microservicio Java Spring Boot** con **MySQL**, **Keycloak + PostgreSQL**, Ingress, Helm, observabilidad y GitOps con ArgoCD, todo en un cluster local con **kind** sobre **Windows + Docker Desktop**.
+De cero (con Docker y conceptos básicos) hasta desplegar un **microservicio Java Spring Boot** con **MySQL**, **Keycloak + PostgreSQL**, Ingress, Helm, observabilidad, **varios entornos** (dev, qa, pre, prod) y **seguridad** (NetworkPolicies, Pod Security, Trivy, Sealed Secrets), todo en un cluster local con **kind** sobre **Windows + Docker Desktop**.
 
 ## Objetivo final
 
@@ -22,11 +22,7 @@ flowchart TD
     subgraph monitoring["Namespace monitoring"]
         PROM["Prometheus + Grafana"]
     end
-    subgraph argocd["Namespace argocd"]
-        ARGO["ArgoCD (GitOps)"]
-    end
     PROM -.->|"scrape métricas"| API
-    ARGO -.->|"sync desde Git"| API
 ```
 
 ## ¿Qué es Kubernetes y por qué?
@@ -35,7 +31,7 @@ flowchart TD
 
 ¿Por qué no basta Docker? Docker arranca contenedores en una máquina. Kubernetes decide **dónde** arrancarlos, los **reinicia** si fallan, los **reparte** entre nodos, les da **red y DNS** estables y permite actualizar sin cortes. Todo de forma declarativa (YAML), no con comandos sueltos.
 
-La pieza clave es el **bucle de reconciliación**: controladores que miran sin parar el estado deseado (guardado en etcd) y el real, y actúan para acercarlos. Si un pod muere, el controlador ve "faltan 1" y crea otro. Esta idea se repite en todo el curso: Deployments, HPA, operadores y ArgoCD.
+La pieza clave es el **bucle de reconciliación**: controladores que miran sin parar el estado deseado (guardado en etcd) y el real, y actúan para acercarlos. Si un pod muere, el controlador ve "faltan 1" y crea otro. Esta idea se repite en todo el curso: Deployments, HPA y operadores.
 
 ```mermaid
 flowchart LR
@@ -81,8 +77,10 @@ En este curso el cluster lo crea **kind** (*Kubernetes IN Docker*): cada nodo es
 | 09 | [Microservicio Spring Boot](09-microservicio-spring/README.md) | Dockerfile, kind load, MySQL, JWT con Keycloak | 3 h |
 | 10 | [Helm](10-helm/README.md) | Chart propio del microservicio, values, upgrade/rollback | 2 h |
 | 11 | [Observabilidad](11-observabilidad/README.md) | Logs, metrics-server, HPA, Prometheus, Grafana | 2.5 h |
-| 12 | [GitOps con ArgoCD](12-gitops-argocd/README.md) | Despliegue declarativo desde Git, self-heal | 2 h |
-| 13 | [Proyecto final](13-proyecto-final/README.md) | Todo de punta a punta + retos | 3 h |
+| 12 | [Multi-entorno](12-multi-entorno/README.md) | dev, qa, pre y prod con values, quota y RBAC por entorno; promoción | 2 h |
+| 13 | [Seguridad avanzada](13-seguridad-avanzada/README.md) | NetworkPolicies, Pod Security Standards, Trivy, Sealed Secrets | 3 h |
+| 14 | [Laboratorio de troubleshooting](14-laboratorio-troubleshooting/README.md) | 10 escenarios rotos a propósito para diagnosticar | 2.5 h |
+| 15 | [Proyecto final](15-proyecto-final/README.md) | Todo de punta a punta + retos | 3 h |
 | — | [Glosario](anexos/glosario.md) | Todas las definiciones del curso, con enlace al módulo | — |
 | — | [Troubleshooting](anexos/troubleshooting.md) | Diagnóstico de pods, red, kind y Docker Desktop | — |
 | — | [Cheatsheet](anexos/cheatsheet.md) | Comandos más usados | — |
@@ -98,7 +96,8 @@ En este curso el cluster lo crea **kind** (*Kubernetes IN Docker*): cada nodo es
 
 - Cluster kind llamado **`curso`** (contexto `kind-curso`).
 - Módulos 02–05 usan el namespace **`demo`** (se borra al final de cada módulo).
-- Del módulo 06 en adelante se usa el namespace **`dev`**.
+- Del módulo 06 en adelante se usa el namespace **`dev`**. El módulo 12 añade `qa`, `pre` y `prod`.
+- El cluster usa **Calico** como CNI (en lugar de kindnet) para que las NetworkPolicies del módulo 13 se apliquen.
 - Dominios locales con **`*.localtest.me`** (resuelve a `127.0.0.1`, no necesitas tocar el archivo hosts).
 - Credenciales del curso son **solo para práctica**. Nunca las uses en un entorno real.
 

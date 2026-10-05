@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Despliega TODO el stack desde cero con YAMLs (sin Helm/ArgoCD).
-# Uso: ./13-proyecto-final/deploy-all.sh   (desde la raíz del curso)
+# Despliega TODO el stack desde cero con YAMLs (sin Helm).
+# Uso: ./15-proyecto-final/deploy-all.sh   (desde la raíz del curso)
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"

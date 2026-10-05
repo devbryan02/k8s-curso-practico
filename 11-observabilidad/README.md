@@ -208,4 +208,4 @@ kubectl delete -f 11-observabilidad/manifests/hpa.yaml
 5. CRD `PrometheusRule` con `groups[].rules[].alert`, `expr`, `for: 1m`. El `job` suele ser el nombre del Service (`products-api`).
 </details>
 
-Siguiente: [Módulo 12 — GitOps con ArgoCD](../12-gitops-argocd/README.md)
+Siguiente: [Módulo 12 — Multi-entorno](../12-multi-entorno/README.md)

@@ -24,7 +24,7 @@ En el módulo 09 desplegaste 4 YAMLs con valores fijos (`replicas: 2`, `image: p
 
 Además, Helm trata el conjunto como una unidad: el **release**. Sabe qué objetos creó, guarda cada versión aplicada como **revisión** (en un Secret `sh.helm.release.v1.<release>.v<N>` del namespace) y puede volver a cualquiera con `rollback` o borrarlo todo con `uninstall`. Con `kubectl apply` tú tendrías que llevar ese control.
 
-Helm no es un controlador que viva en el cluster: es un cliente (como `kubectl`) que renderiza YAML y lo envía a la API. Si alguien edita un objeto con `kubectl` por fuera, Helm no lo corrige; eso lo hará ArgoCD en el módulo 12.
+Helm no es un controlador que viva en el cluster: es un cliente (como `kubectl`) que renderiza YAML y lo envía a la API. Si alguien edita un objeto con `kubectl` por fuera, Helm no lo corrige: la próxima vez que hagas `helm upgrade` volverá a imponer lo que dice el chart.
 
 | Concepto | Qué es |
 |----------|--------|
@@ -155,7 +155,7 @@ kubectl get pods -n dev -w      # los pods se renuevan porque cambió el ConfigM
 helm uninstall products-api -n dev
 ```
 
-(Para el módulo 12 volverás a desplegarlo, pero con ArgoCD.)
+(En el módulo 12 volverás a desplegarlo en cuatro entornos distintos.)
 
 > **¿Qué acaba de pasar?** Helm borró todos los objetos del release y sus Secrets de historial. `mysql-secret`, MySQL y Keycloak siguen ahí porque no pertenecen al chart.
 
@@ -174,7 +174,7 @@ helm uninstall products-api -n dev
 - Prioridad de values: `values.yaml` < `-f archivo` < `--set`. Revisa siempre con `helm template` antes de instalar.
 - Cada install/upgrade/rollback es una revisión guardada como Secret; `rollback` crea una revisión nueva.
 - `checksum/config` fuerza el reinicio de pods cuando cambia el ConfigMap.
-- Helm es solo un cliente: no corrige cambios manuales en el cluster (eso es GitOps, módulo 12).
+- Helm es solo un cliente: no vigila el cluster; solo actúa cuando ejecutas `install` o `upgrade`.
 
 ## Ejercicios
 

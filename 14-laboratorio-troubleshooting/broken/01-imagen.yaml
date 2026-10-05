@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: web-imagen
+  namespace: lab
+spec:
+  containers:
+    - name: web
+      image: nginx:1.27.99
+      ports:
+        - containerPort: 80

@@ -1,4 +1,5 @@
 # Módulo 02 — Workloads: Pods y Deployments
+> **Perfil developer:** Esencial — Pods, Deployments, probes y recursos son lo que defines en cada despliegue de tu servicio.
 
 ## Objetivos
 - Entender Pod → ReplicaSet → Deployment.

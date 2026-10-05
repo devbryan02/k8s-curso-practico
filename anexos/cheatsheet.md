@@ -65,7 +65,7 @@ helm get values rel -n dev
 ## kind
 
 ```bash
-kind create cluster --config kind-config.yaml   # luego instalar Calico (o usar ./scripts/up.sh)
+kind create cluster --config kind-config.yaml   # o ./scripts/up.sh (añade ingress-nginx)
 kind get clusters
 ./scripts/kind-load.sh img:tag        # equivale a `kind load docker-image`, compatible con Docker Desktop reciente
 kind export logs ./logs --name curso

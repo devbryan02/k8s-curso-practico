@@ -1,4 +1,5 @@
 # Módulo 07 — Ingress y networking
+> **Perfil developer:** Recomendado — para saber por qué tu API devuelve 404 o 503 desde fuera del cluster.
 
 ## Objetivos
 - Entender qué es un Ingress y un Ingress Controller.

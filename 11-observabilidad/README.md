@@ -1,4 +1,5 @@
 # Módulo 11 — Observabilidad: logs, métricas y autoscaling
+> **Perfil developer:** Esencial — logs, métricas y HPA son lo primero que miras cuando algo va mal o lento.
 
 ## Objetivos
 - Dominar logs con `kubectl logs` y `stern`.
@@ -207,5 +208,7 @@ kubectl delete -f 11-observabilidad/manifests/hpa.yaml
 2. `kubectl set resources deploy/products-api -n dev --limits=memory=200Mi`
 5. CRD `PrometheusRule` con `groups[].rules[].alert`, `expr`, `for: 1m`. El `job` suele ser el nombre del Service (`products-api`).
 </details>
+
+**Anexos relacionados:** [Spring en Kubernetes](../anexos/spring-en-kubernetes.md) (memoria de la JVM y probes).
 
 Siguiente: [Módulo 12 — Multi-entorno](../12-multi-entorno/README.md)

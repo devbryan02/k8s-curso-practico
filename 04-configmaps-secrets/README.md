@@ -1,4 +1,5 @@
 # Módulo 04 — ConfigMaps y Secrets
+> **Perfil developer:** Esencial — así llega la configuración y las credenciales a tu aplicación en cualquier entorno.
 
 ## Objetivos
 - Separar configuración del código (12-factor).

@@ -1,4 +1,5 @@
 # Módulo 06 — Persistencia y bases de datos (MySQL + PostgreSQL)
+> **Perfil developer:** Recomendado — lo esencial es cómo tu app se conecta a la BD (Service, Secret, DNS); PV y StatefulSet están plegados como lectura.
 
 ## Objetivos
 - Entender PV, PVC y StorageClass.
@@ -16,7 +17,38 @@
 - **volumeClaimTemplates**: plantilla de PVC dentro del StatefulSet. Genera un PVC por réplica: `data-mysql-0`, `data-mysql-1`...
 - **Headless Service**: Service con `clusterIP: None`. No balancea; da un DNS por Pod (`mysql-0.mysql.dev.svc.cluster.local`).
 
+## Cómo se conecta tu app a la base de datos
+
+Esto es lo que tocas en el día a día como developer. La BD es otro workload más en el cluster y tu app la encuentra por **nombre**, no por IP:
+
+```mermaid
+flowchart LR
+    API["products-api<br/>(Deployment)"] -- "DB_URL jdbc:mysql://mysql:3306/productsdb" --> SVC["Service mysql<br/>DNS: mysql.dev.svc.cluster.local"]
+    SVC --> POD["Pod mysql-0"]
+    SEC["Secret mysql-secret"] -- "DB_USER / DB_PASSWORD<br/>(secretKeyRef)" --> API
+```
+
+| Pieza | Qué hace por tu app |
+|-------|---------------------|
+| **Service `mysql`** | Da un nombre DNS estable. Desde el mismo namespace basta `mysql`; desde otro, `mysql.dev.svc.cluster.local`. Los pods cambian de IP, el nombre no. |
+| **Secret `mysql-secret`** | Guarda usuario y contraseña. La app los lee como variables de entorno (`secretKeyRef`); nunca van en la imagen ni en el ConfigMap. |
+| **`DB_URL`** | Variable de entorno con la URL JDBC. Es lo que cambia entre entornos (módulo 12). |
+
+Qué verás cuando falla la conexión (ver también el [laboratorio de troubleshooting](../14-laboratorio-troubleshooting/README.md)):
+
+| Síntoma en los logs de tu app | Causa habitual |
+|-------------------------------|----------------|
+| `UnknownHostException: mysql` | Nombre del Service mal escrito, o MySQL está en otro namespace |
+| `Communications link failure` / `Connection refused` | MySQL aún no está `Ready`, o puerto incorrecto |
+| `Access denied for user` | Secret con credenciales distintas a las del primer arranque de la BD |
+| `CreateContainerConfigError` en el pod de la app | Falta el Secret `mysql-secret` en ese namespace |
+
+Todo lo demás de este módulo (volúmenes, StorageClass, StatefulSet) explica **cómo la BD conserva sus datos**. Es contexto valioso para entender qué pasa al borrar un pod, pero normalmente lo gestiona el equipo de plataforma o un servicio gestionado.
+
 ## Teoría
+
+<details>
+<summary>Cómo se guardan los datos: PV, PVC, StorageClass y StatefulSet (contexto de plataforma)</summary>
 
 ```mermaid
 flowchart LR
@@ -55,6 +87,8 @@ flowchart TD
     SVC -. "DNS mysql-0.mysql.dev.svc.cluster.local" .-> P0
     STS -. "si escalas a 2" .-> P1["Pod mysql-1 + PVC data-mysql-1"]
 ```
+
+</details>
 
 ## Archivos
 

@@ -1,4 +1,5 @@
 # Módulo 09 — Microservicio Spring Boot (MySQL + Keycloak)
+> **Perfil developer:** Esencial — es tu stack: el microservicio completo desplegado, con BD, probes y seguridad.
 
 Aquí se junta todo: tu stack real (**Java + Spring Boot + JPA + MySQL**) corriendo en kind, protegido con JWT de Keycloak.
 
@@ -99,7 +100,7 @@ kubectl get pods -n dev
 ```bash
 cd 09-microservicio-spring/app
 docker build -t products-api:1.0.0 .
-./scripts/kind-load.sh products-api:1.0.0
+../../scripts/kind-load.sh products-api:1.0.0
 ```
 
 (La primera build tarda: descarga Maven y dependencias.)
@@ -155,7 +156,7 @@ Modifica algo (ej. mensaje del ping) y:
 ```bash
 cd app
 docker build -t products-api:1.0.1 .
-./scripts/kind-load.sh products-api:1.0.1
+../../scripts/kind-load.sh products-api:1.0.1
 kubectl set image deploy/products-api products-api=products-api:1.0.1 -n dev
 kubectl rollout status deploy/products-api -n dev
 ```
@@ -203,5 +204,7 @@ kubectl exec -it deploy/products-api -n dev -- sh -c 'env | grep -E "DB_|JWK"'
 4. Basta `kubectl rollout restart deploy/products-api -n dev` (las env vars se leen al arrancar el pod).
 5. Usa `@EnableMethodSecurity` y `@PreAuthorize("hasRole('admin')")`; el converter debe añadir autoridades `ROLE_<rol>` desde `realm_access.roles`.
 </details>
+
+**Anexos relacionados:** [Spring en Kubernetes](../anexos/spring-en-kubernetes.md) y [Ciclo de desarrollo local](../anexos/ciclo-desarrollo-local.md).
 
 Siguiente: [Módulo 10 — Helm](../10-helm/README.md)

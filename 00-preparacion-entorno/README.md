@@ -1,4 +1,5 @@
 # Módulo 00 — Preparación del entorno (Windows 11 + Docker Desktop)
+> **Perfil developer:** Esencial — es la base de todo lo que practicas; sin esto nada de lo demás corre en tu máquina.
 
 ## Objetivos
 - Verificar que Docker Desktop tiene recursos suficientes para kind.
@@ -75,9 +76,10 @@ docker run --rm hello-world
 kubectl version --client
 kind version
 helm version
+jq --version      # lo usan el smoke test del módulo 15 y los módulos 08 y 13
 ```
 
-Todo debe responder sin errores.
+Todo debe responder sin errores. Si `jq` no está instalado: `scoop install jq` (o `winget install jqlang.jq`).
 
 > **¿Qué acaba de pasar?** `hello-world` prueba la cadena completa: CLI → demonio Docker → descarga de imagen → contenedor. Si esto funciona, kind funcionará.
 

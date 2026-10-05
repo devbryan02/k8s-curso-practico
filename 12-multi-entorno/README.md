@@ -1,4 +1,5 @@
 # Módulo 12 — Multi-entorno: dev, qa, pre y prod
+> **Perfil developer:** Recomendado — los `values-<env>` y la promoción entre entornos son esenciales; el baseline de quota y RBAC por namespace es opcional.
 
 ## Objetivos
 - Desplegar el **mismo chart** en cuatro entornos distintos cambiando solo los *values*.

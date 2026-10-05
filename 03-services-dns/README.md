@@ -1,4 +1,5 @@
 # Módulo 03 — Services y DNS
+> **Perfil developer:** Esencial — cómo se encuentran tus servicios entre sí; la causa más frecuente de 'no conecta'.
 
 ## Objetivos
 - Entender cómo se comunican los pods entre sí.

@@ -1,4 +1,5 @@
 # Módulo 08 — Keycloak con PostgreSQL
+> **Perfil developer:** Opcional — basta con entender qué necesita tu API de un proveedor de identidad (JWKS, issuer, roles); el despliegue se copia.
 
 ## Objetivos
 - Desplegar Keycloak apuntando al PostgreSQL del módulo 06.
@@ -16,6 +17,22 @@
 - **JWT (JSON Web Token)**: token `header.payload.firma` en Base64URL. El payload lleva *claims* (`iss`, `exp`, `preferred_username`...).
 - **Claim**: cada dato dentro del JWT. `iss` = emisor, `exp` = expiración, `realm_access.roles` = roles.
 - **JWKS (JSON Web Key Set)**: lista de claves **públicas** del realm. Quien recibe un JWT la usa para verificar la firma.
+
+## Qué necesita tu API del IdP
+
+Como developer, de Keycloak (o de cualquier IdP de tu empresa) solo necesitas tres cosas. El resto del módulo es cómo se monta el servidor, que normalmente ya viene hecho:
+
+| Dato | Para qué lo usa tu API | Dónde lo configuras en el curso |
+|------|------------------------|---------------------------------|
+| **JWKS** (`jwks_uri`) | Descargar las claves públicas y verificar la firma de cada JWT | `JWK_SET_URI` en el ConfigMap de `products-api` (módulo 09) |
+| **Issuer** (`iss`) | Saber quién emitió el token. Si validas el issuer, debe coincidir **exactamente** con el del token | No se valida en el curso (ver nota abajo) |
+| **Roles / claims** | Decidir qué puede hacer cada usuario (`realm_access.roles`, `preferred_username`...) | Dentro del token; tu código los lee |
+
+> **Nota:** el curso usa `jwk-set-uri` con la URL **interna** del cluster (`http://keycloak:8080/...`) y no `issuer-uri`. El issuer del token es el público (`keycloak.localtest.me`), que no resuelve desde dentro de un pod; si validaras el issuer con una URL distinta, todos los tokens darían `401`. Es un fallo muy habitual en el trabajo.
+
+Errores que verás desde tu API: `401` con token expirado o firma inválida, `401` si el JWKS no es alcanzable, `403` si el token es válido pero no tiene el rol necesario.
+
+**Cómo usar este módulo:** si solo quieres llegar al módulo 09, aplica los YAML de la sección *Práctica* como un bloque (copiar y ejecutar), comprueba que obtienes un token y sigue. Las secciones de teoría explican lo que ocurre por debajo cuando necesites depurar.
 
 ## Teoría
 
@@ -81,6 +98,19 @@ Decisiones de este módulo (¡solo para aprender!):
   ```
 
 ## Práctica
+
+**Bloque a copiar** (despliega Keycloak, espera a que esté listo y comprueba que emite tokens):
+
+```bash
+cd 08-keycloak
+kubectl apply -f k8s/
+kubectl rollout status deploy/keycloak -n dev --timeout=300s
+curl -s -X POST http://keycloak.localtest.me/realms/curso/protocol/openid-connect/token \
+  -d grant_type=password -d client_id=curso-client \
+  -d username=alice -d password=alice123 | jq -r .access_token | cut -c1-40
+```
+
+Si imprime el comienzo de un token (`eyJ...`), ya puedes pasar al módulo 09. A continuación, el mismo despliegue paso a paso con lo que ocurre en cada uno:
 
 ```bash
 cd 08-keycloak

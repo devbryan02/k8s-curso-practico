@@ -66,7 +66,7 @@ kubectl get endpoints <svc> -n <ns>              # ¿hay pods detrás del Servic
 
 | Problema | Solución |
 |----------|----------|
-| Nodos `NotReady` / CoreDNS `Pending` tras `kind create cluster` | Falta el CNI: la config desactiva kindnet. Aplica Calico (módulo 01) o usa `./scripts/up.sh` |
+| Nodos `NotReady` / CoreDNS `Pending` tras crear el cluster con `kind-config-calico.yaml` | Falta instalar Calico: usa `CNI=calico ./scripts/up.sh` (o aplica el manifiesto de Calico, ver `scripts/up.sh`) |
 | `kind create cluster` falla por puerto 80/443 | Cambia `hostPort` (p. ej. 8080/8443) y usa `http://api.localtest.me:8080` |
 | Mucha RAM / Docker lento | Docker Desktop → *Settings → Resources* (o `.wslconfig`: `memory=8GB`); baja réplicas; apaga monitoring |
 | Los datos desaparecen | Recrear el cluster borra los volúmenes (viven en los contenedores de los nodos) |

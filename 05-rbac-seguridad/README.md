@@ -1,4 +1,5 @@
 # Módulo 05 — Namespaces, RBAC y seguridad básica
+> **Perfil developer:** Recomendado — te ayuda a interpretar un `forbidden` o un `exceeded quota`; crear Roles lo suele hacer la plataforma.
 
 ## Objetivos
 - Aislar equipos/apps con namespaces, quotas y limit ranges.
@@ -33,7 +34,7 @@
 
 **¿Por qué `securityContext`?** Si alguien explota tu app, el daño depende de los privilegios del contenedor. Corriendo como usuario no-root, sin capabilities y con FS de solo lectura, el atacante casi no puede hacer nada dentro. Es defensa en profundidad, gratis.
 
-> Nota: este curso instala Calico en lugar de kindnet, así que las `NetworkPolicy` sí se aplican. Lo practicas en el [módulo 13](../13-seguridad-avanzada/README.md).
+> Nota: el CNI por defecto de kind (kindnet) no aplica `NetworkPolicy`: puedes crearlas pero no tendrán efecto. Para practicarlas, crea el cluster con Calico (`CNI=calico ./scripts/up.sh`) y sigue el [módulo 13](../13-seguridad-avanzada/README.md).
 
 Cómo se resuelve un permiso RBAC en esta práctica:
 
@@ -144,5 +145,7 @@ kubectl delete namespace demo
 2. `kubectl create clusterrole node-reader --verb=get,list --resource=nodes` y `kubectl create clusterrolebinding node-reader-b --clusterrole=node-reader --serviceaccount=demo:app-reader`.
 4. `forbidden: exceeded quota: demo-quota`.
 </details>
+
+**Anexos relacionados:** [Leer el cluster de la empresa](../anexos/leer-cluster-empresa.md) (qué hacer ante un `forbidden` sin ser admin).
 
 Siguiente: [Módulo 06 — Persistencia y bases de datos](../06-persistencia-bases-de-datos/README.md)

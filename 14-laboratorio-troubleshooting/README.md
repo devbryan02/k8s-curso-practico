@@ -1,4 +1,5 @@
 # Módulo 14 — Laboratorio de troubleshooting
+> **Perfil developer:** Esencial — es lo que más se parece a un mal día en producción: diagnosticar con método.
 
 ## Objetivos
 - Diagnosticar los fallos más habituales de Kubernetes siguiendo un método, no adivinando.
@@ -288,5 +289,7 @@ kubectl delete namespace lab
 4. `kubectl debug -it <pod> -n lab --image=busybox:1.36 --target=nginx -- nslookup web`.
 5. Añade `--field-selector type=Warning`.
 </details>
+
+**Anexos relacionados:** [Leer el cluster de la empresa](../anexos/leer-cluster-empresa.md).
 
 Siguiente: [Módulo 15 — Proyecto final](../15-proyecto-final/README.md)

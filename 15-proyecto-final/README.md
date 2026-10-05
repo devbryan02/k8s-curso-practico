@@ -1,4 +1,5 @@
 # Módulo 15 — Proyecto final
+> **Perfil developer:** Esencial — niveles 1 y 2; el nivel 3 (multi-entorno y seguridad) es opcional.
 
 ## Objetivo
 
@@ -10,7 +11,7 @@ Levantar **todo el sistema desde cero** y demostrar que lo dominas. Hay tres niv
 - **Orden de dependencias**: las piezas se levantan en orden (BDs → Keycloak → API) porque cada una necesita la anterior para arrancar sana.
 - **PodDisruptionBudget (PDB)**: objeto que limita cuántos pods de una app pueden caer a la vez por una interrupción voluntaria (drain, upgrade de nodo).
 - **Drain / cordon**: `cordon` marca un nodo como no programable; `drain` además desaloja sus pods respetando los PDB. `uncordon` lo devuelve al servicio.
-- **NetworkPolicy**: reglas de firewall entre pods por labels. En este curso se aplican porque el cluster usa Calico (módulo 13).
+- **NetworkPolicy**: reglas de firewall entre pods por labels. Solo se aplican si el CNI las implementa (Calico sí, kindnet no; módulo 13).
 - **Infraestructura reproducible**: poder borrar todo y recrearlo con un script o desde Git, sin pasos manuales.
 
 ## Teoría
@@ -52,7 +53,7 @@ Este script recrea el cluster y ejecuta, en orden: BDs → Keycloak → build/lo
 
 ```mermaid
 flowchart LR
-    S1["1. scripts/up.sh<br/>cluster kind + Calico + ingress-nginx"] --> S2["2. 06-persistencia<br/>namespace dev, MySQL, PostgreSQL"]
+    S1["1. scripts/up.sh<br/>cluster kind + ingress-nginx"] --> S2["2. 06-persistencia<br/>namespace dev, MySQL, PostgreSQL"]
     S2 --> S3["3. 08-keycloak<br/>realm + Deployment + Ingress"]
     S3 --> S4["4. docker build<br/>kind load products-api:1.0.0"]
     S4 --> S5["5. 09-microservicio<br/>ConfigMap, Deployment, Service, Ingress"]
@@ -87,7 +88,7 @@ flowchart LR
 - Despliega en orden de dependencias y espera a que cada pieza esté Ready (`rollout status`).
 - YAML → Helm → multi-entorno: misma arquitectura, distinta forma de empaquetar y promocionar.
 - Un smoke test con token demuestra la cadena completa: Ingress → API → Keycloak (JWKS) → MySQL.
-- kind no es producción: storage local, sin LoadBalancer real y las NetworkPolicies solo funcionan porque instalaste Calico.
+- kind no es producción: storage local, sin LoadBalancer real y las NetworkPolicies no se aplican con kindnet (hace falta Calico, módulo 13).
 
 ## Retos extra (nivel "senior")
 
@@ -113,7 +114,7 @@ flowchart LR
 - [ ] Explico cómo se promociona una versión entre dev, qa, pre y prod sin reconstruir la imagen.
 - [ ] Sé aplicar default deny y abrir solo el tráfico necesario con NetworkPolicies.
 - [ ] Explico qué hace Pod Security Standards y cuándo uso `baseline` y `restricted`.
-- [ ] Sé qué cosas de kind **no** existen en un cluster real (LoadBalancer, storage local) y qué instalé yo (Calico).
+- [ ] Sé qué cosas de kind **no** existen en un cluster real (LoadBalancer, storage local) y que las NetworkPolicies necesitan un CNI como Calico.
 
 ## ¿Y ahora qué?
 

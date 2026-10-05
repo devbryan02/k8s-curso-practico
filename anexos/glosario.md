@@ -17,7 +17,7 @@ Definiciones cortas de todos los términos del curso, en orden alfabético. La �
 | **Client (Keycloak)** | Aplicación registrada en un realm que pide tokens (p. ej. `curso-client`). | [08](../08-keycloak/README.md) |
 | **Cluster** | Conjunto de nodos gestionados por un control plane común. | [01](../01-cluster-kind/README.md) |
 | **ClusterIP** | IP virtual de un Service, solo alcanzable dentro del cluster. | [03](../03-services-dns/README.md) |
-| **CNI** | Plugin que da red a los pods. En el curso es Calico, que además aplica NetworkPolicies. | [01](../01-cluster-kind/README.md) |
+| **CNI** | Plugin que da red a los pods. kind usa kindnet por defecto; Calico añade NetworkPolicies (módulo 13). | [01](../01-cluster-kind/README.md) |
 | **ConfigMap** | Objeto con pares clave/valor o archivos de configuración **no sensible**. | [04](../04-configmaps-secrets/README.md) |
 | **containerd / CRI** | Runtime de contenedores dentro de cada nodo; se inspecciona con `crictl`. | [01](../01-cluster-kind/README.md) |
 | **Contexto (kubeconfig)** | Combinación cluster + usuario + namespace en `~/.kube/config` (p. ej. `kind-curso`). | [01](../01-cluster-kind/README.md) |
@@ -25,6 +25,7 @@ Definiciones cortas de todos los términos del curso, en orden alfabético. La �
 | **Control plane** | Cerebro del cluster: api-server, etcd, scheduler y controller-manager. | [01](../01-cluster-kind/README.md) |
 | **CoreDNS** | DNS interno del cluster; resuelve `servicio.namespace.svc.cluster.local`. | [03](../03-services-dns/README.md) |
 | **CVE** | Vulnerabilidad pública con identificador y severidad (LOW a CRITICAL). | [13](../13-seguridad-avanzada/README.md) |
+| **Debug remoto (JDWP)** | Depurar la JVM de un pod desde tu IDE, conectándote por `port-forward` al puerto de depuración. | [anexo](ciclo-desarrollo-local.md) |
 | **Default deny** | NetworkPolicy que selecciona todos los pods y no permite nada; las demás abren excepciones. | [13](../13-seguridad-avanzada/README.md) |
 | **Deployment** | Gestiona ReplicaSets para hacer updates graduales y rollbacks. Lo que usarás para microservicios. | [02](../02-workloads/README.md) |
 | **Docker Engine** | Demonio `dockerd` que crea contenedores; vive en Docker Desktop. | [00](../00-preparacion-entorno/README.md) |
@@ -37,6 +38,7 @@ Definiciones cortas de todos los términos del curso, en orden alfabético. La �
 | **Events** | Mensajes que Kubernetes registra sobre un objeto; aparecen al final de `kubectl describe`. | [14](../14-laboratorio-troubleshooting/README.md) |
 | **Exit code** | Código con el que termina un proceso: 0 bien, 1 error, 137 `SIGKILL` (suele ser `OOMKilled`). | [14](../14-laboratorio-troubleshooting/README.md) |
 | **Graceful shutdown** | Ante SIGTERM, la app termina las peticiones en curso antes de parar. | [09](../09-microservicio-spring/README.md) |
+| **Graceful shutdown** | Spring termina las peticiones en curso antes de parar; debe caber en `terminationGracePeriodSeconds`. | [anexo](spring-en-kubernetes.md) |
 | **Grafana** | Dashboards que consultan Prometheus con PromQL; no guarda métricas. | [11](../11-observabilidad/README.md) |
 | **Headless Service** | Service con `clusterIP: None`: no balancea, el DNS devuelve las IPs de los Pods. | [03](../03-services-dns/README.md), [06](../06-persistencia-bases-de-datos/README.md) |
 | **Helm** | Gestor de paquetes (charts) de Kubernetes. | [10](../10-helm/README.md) |
@@ -65,7 +67,7 @@ Definiciones cortas de todos los términos del curso, en orden alfabético. La �
 | **Micrometer / Actuator** | Exponen métricas JVM y HTTP de Spring Boot en `/actuator/prometheus`. | [11](../11-observabilidad/README.md) |
 | **Multi-stage build** | Dockerfile con etapa de compilación (JDK+Maven) y etapa runtime (JRE): imagen más pequeña. | [09](../09-microservicio-spring/README.md) |
 | **Namespace** | Carpeta lógica del cluster; unidad de permisos y cuotas. No aísla la red por sí solo. | [05](../05-rbac-seguridad/README.md) |
-| **NetworkPolicy** | Firewall entre pods por labels; requiere un CNI que la implemente (en el curso, Calico; kindnet no). | [13](../13-seguridad-avanzada/README.md) |
+| **NetworkPolicy** | Firewall entre pods por labels; requiere un CNI que la implemente (Calico, Cilium; kindnet no). | [13](../13-seguridad-avanzada/README.md) |
 | **Nodo** | Máquina (en kind, contenedor) donde corren Pods; control-plane o worker. | [01](../01-cluster-kind/README.md) |
 | **OAuth2** | Estándar de autorización: cómo un cliente obtiene un access token para llamar a una API. | [08](../08-keycloak/README.md) |
 | **Observabilidad** | Saber qué pasa dentro del sistema por sus salidas: logs, métricas y trazas. | [11](../11-observabilidad/README.md) |
@@ -73,6 +75,7 @@ Definiciones cortas de todos los términos del curso, en orden alfabético. La �
 | **OOMKilled** | Contenedor matado por superar `limits.memory`. | [02](../02-workloads/README.md) |
 | **PersistentVolume (PV)** | Almacenamiento real del cluster, independiente del ciclo de vida del Pod. | [06](../06-persistencia-bases-de-datos/README.md) |
 | **PersistentVolumeClaim (PVC)** | Petición de almacenamiento de una app ("1Gi, RWO") que se enlaza a un PV. | [06](../06-persistencia-bases-de-datos/README.md) |
+| **Pipeline / stage / job** | En CI/CD: pipeline = flujo completo; stage = fase (build, test, deploy); job = tarea dentro de una fase. | [anexo](gitlab-ci.md) |
 | **Pod Security Standards** | Perfiles `privileged`, `baseline` y `restricted` que se aplican por labels del namespace (`enforce`, `warn`, `audit`). | [13](../13-seguridad-avanzada/README.md) |
 | **Pod** | Unidad mínima: 1+ contenedores que comparten IP y volúmenes. Efímero. | [02](../02-workloads/README.md) |
 | **PodDisruptionBudget (PDB)** | Limita cuántos pods de una app pueden caer a la vez en interrupciones voluntarias. | [13](../15-proyecto-final/README.md) |
@@ -84,6 +87,7 @@ Definiciones cortas de todos los términos del curso, en orden alfabético. La �
 | **Promoción** | Llevar la misma versión probada de un entorno al siguiente sin reconstruirla. | [12](../12-multi-entorno/README.md) |
 | **Provisioner** | Componente que crea el disco real para un PVC (en kind: `rancher.io/local-path`). | [06](../06-persistencia-bases-de-datos/README.md) |
 | **Realm** | Espacio aislado de Keycloak con sus usuarios, roles y clientes. | [08](../08-keycloak/README.md) |
+| **Registry** | Almacén de imágenes de contenedor al que el pipeline sube y del que los nodos descargan. | [anexo](gitlab-ci.md) |
 | **Release** | Instalación concreta de un chart, con nombre, en un namespace. | [10](../10-helm/README.md) |
 | **Render** | Convertir templates + values en manifests finales (`helm template`). | [10](../10-helm/README.md) |
 | **ReplicaSet** | Controlador que mantiene N Pods iguales; lo crea el Deployment. | [02](../02-workloads/README.md) |

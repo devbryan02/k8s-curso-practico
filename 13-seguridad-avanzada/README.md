@@ -1,4 +1,5 @@
 # Módulo 13 — Seguridad avanzada
+> **Perfil developer:** Opcional — para saber qué controles puede aplicarte la plataforma y cómo se ve el error cuando bloquean tu despliegue; requiere crear el cluster con Calico.
 
 ## Objetivos
 - Aislar la red entre pods con **NetworkPolicies** (default deny + reglas mínimas).
@@ -19,6 +20,20 @@
 - **Cadena de suministro (supply chain)**: todo lo que entra en tu imagen sin que lo hayas escrito tú: imagen base, librerías, dependencias.
 
 ## Teoría
+
+### Cómo se ve cada control desde el lado developer
+
+En el trabajo normalmente no configuras estos controles: te los impone la plataforma. Lo que sí te toca es reconocerlos cuando tu despliegue falla:
+
+| Control | Qué ves | Qué significa |
+|---------|---------|---------------|
+| **NetworkPolicy** | `timeout` (no `connection refused`) al llamar de un pod a otro; el Service tiene endpoints y los pods están sanos | Un paquete descartado por una política. Pide al equipo de plataforma que abra el origen y puerto concretos |
+| **Pod Security** | `Error from server (Forbidden): ... violates PodSecurity "baseline:latest"` (o `restricted`) al hacer `apply`, con la lista de campos que incumples | Tu pod pide algo no permitido: `privileged`, `hostNetwork`, ejecutarse como root, falta `seccompProfile`... Se corrige en el `securityContext` del chart |
+| **Sealed Secrets** | `no key could decrypt secret` en los logs del controlador; el `Secret` nunca aparece | Sellaste el secreto para otro cluster, otro namespace u otro nombre |
+
+Cada uno se reproduce más abajo, así que cuando lo veas en el trabajo ya lo habrás visto aquí.
+
+### Las capas de seguridad
 
 La seguridad en Kubernetes funciona por capas; cada una cubre una amenaza distinta:
 
@@ -57,7 +72,7 @@ Una política puede seleccionar de dos formas el origen del tráfico y se combin
 
 ## Prerrequisitos
 
-1. Cluster `curso` creado con Calico (módulo 01 o `./scripts/up.sh`).
+1. Cluster `curso` creado **con Calico**. kindnet, el CNI por defecto, no aplica NetworkPolicies, así que recrea el cluster: `./scripts/down.sh && CNI=calico ./scripts/up.sh` (después tendrás que volver a desplegar `dev`: módulos 06 a 10).
 2. Namespace `dev` con MySQL, Keycloak y `products-api` desplegados (módulos 06 a 10).
 3. Docker Desktop abierto y `jq` instalado (para algunos filtros).
 
@@ -236,7 +251,7 @@ kubectl delete sealedsecret api-key -n dev
 
 | Síntoma | Causa |
 |---------|-------|
-| Las NetworkPolicies no bloquean nada | El cluster no usa Calico (se creó con kindnet): recréalo con `./scripts/up.sh` |
+| Las NetworkPolicies no bloquean nada | El cluster no usa Calico (se creó con kindnet): recréalo con `./scripts/down.sh && CNI=calico ./scripts/up.sh` |
 | Tras `default-deny` la web da 504 | Falta permitir `ingress-nginx` hacia ese pod |
 | Prometheus deja de recibir métricas | Falta la regla desde el namespace `monitoring` |
 | `kubectl apply` rechazado con `violates PodSecurity` | El pod incumple el perfil del namespace; el mensaje lista cada campo |

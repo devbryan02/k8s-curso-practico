@@ -1,4 +1,5 @@
 # Módulo 10 — Helm: empaqueta tu microservicio
+> **Perfil developer:** Esencial — es la forma en que se empaqueta y despliega tu servicio en el trabajo.
 
 ## Objetivos
 - Entender la estructura de un chart y cómo funcionan los templates.
@@ -191,5 +192,7 @@ helm uninstall products-api -n dev
 3. `fullname` = release name → no colisionan. Ambos usan el mismo Secret/DB (esperado).
 4. `--atomic` revierte automáticamente al estado anterior al agotarse el timeout.
 </details>
+
+**Anexos relacionados:** [CI/CD con GitLab](../anexos/gitlab-ci.md) (cómo se usa este chart en un pipeline).
 
 Siguiente: [Módulo 11 — Observabilidad](../11-observabilidad/README.md)

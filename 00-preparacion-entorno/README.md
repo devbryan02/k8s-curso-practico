@@ -31,8 +31,8 @@ Los comandos del curso están escritos en sintaxis **bash** (tuberías, `$(...)`
 - **PowerShell**: sirve para los comandos simples de `kubectl`, `helm`, `kind` y `docker`. Cuando un bloque use sintaxis bash, ejecútalo en Git Bash.
 
 ```bash
-git clone <url-del-curso> kubernetes   # o copia la carpeta
-cd kubernetes
+git clone https://github.com/devbryan02/k8s-curso-practico.git
+cd k8s-curso-practico
 ```
 
 ## Teoría: cómo encajan las capas

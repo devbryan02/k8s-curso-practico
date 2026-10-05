@@ -6,7 +6,7 @@
 - Exponerlo con Ingress en `http://keycloak.localtest.me`.
 - Obtener un token JWT con `curl`.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **IdP (Identity Provider)**: servidor que gestiona usuarios y emite credenciales de identidad. Aquí, Keycloak.
 - **OAuth2**: estándar de **autorización**: define cómo un cliente obtiene un *access token* para llamar a una API.
@@ -28,12 +28,6 @@ La clave es la **firma asimétrica**: Keycloak firma el JWT con su clave **priva
 En Kubernetes, Keycloak es una app *stateless* más (Deployment) que guarda su estado en PostgreSQL (StatefulSet del módulo 06). Su configuración inicial (realm) llega como ConfigMap montado en volumen, y el Ingress del módulo 07 lo expone hacia tu navegador de Windows.
 
 Flujo que implementaremos:
-
-```
-1. Cliente ──(usuario+password)──▶ Keycloak ──▶ access_token (JWT)
-2. Cliente ──(Authorization: Bearer <JWT>)──▶ products-api
-3. products-api descarga las claves públicas (JWKS) de Keycloak y valida la firma
-```
 
 ```mermaid
 sequenceDiagram
@@ -95,7 +89,7 @@ kubectl rollout status deploy/keycloak -n dev --timeout=300s
 kubectl logs -f deploy/keycloak -n dev      # espera "Keycloak ... started"
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Se crearon ConfigMap, Secret, Deployment, Service e Ingress. El Pod tarda porque Keycloak arranca, conecta a `postgres:5432` (DNS del Service) y crea su esquema; mientras, la `startupProbe` sobre `/realms/master` le da hasta 5 min (60 × 5 s) antes de que la liveness pueda matarlo. Al terminar, importa `curso-realm.json` desde el volumen del ConfigMap.
+> **¿Qué acaba de pasar?** Se crearon ConfigMap, Secret, Deployment, Service e Ingress. El Pod tarda porque Keycloak arranca, conecta a `postgres:5432` (DNS del Service) y crea su esquema; mientras, la `startupProbe` sobre `/realms/master` le da hasta 5 min (60 × 5 s) antes de que la liveness pueda matarlo. Al terminar, importa `curso-realm.json` desde el volumen del ConfigMap.
 
 Abre en el navegador de Windows: **http://keycloak.localtest.me** → *Administration Console* → `admin / admin`. Cambia al realm **curso** (menú arriba a la izquierda) y revisa *Clients* y *Users*.
 
@@ -115,7 +109,7 @@ echo $TOKEN | cut -d. -f2 | base64 -d 2>/dev/null | jq     # payload del JWT
 
 Fíjate en `iss`, `exp`, `preferred_username`, `realm_access.roles`.
 
-> 🧠 **¿Qué acaba de pasar?** Usaste el *password grant*: enviaste usuario y contraseña al *token endpoint* del realm `curso` y Keycloak devolvió un `access_token` (y un `refresh_token`). El JWT tiene 3 partes separadas por `.`; con `cut -f2` tomas el payload y lo decodificas. No está cifrado, solo **firmado**: cualquiera puede leerlo, nadie puede modificarlo sin invalidar la firma.
+> **¿Qué acaba de pasar?** Usaste el *password grant*: enviaste usuario y contraseña al *token endpoint* del realm `curso` y Keycloak devolvió un `access_token` (y un `refresh_token`). El JWT tiene 3 partes separadas por `.`; con `cut -f2` tomas el payload y lo decodificas. No está cifrado, solo **firmado**: cualquiera puede leerlo, nadie puede modificarlo sin invalidar la firma.
 
 ### Endpoints OIDC útiles
 
@@ -123,7 +117,7 @@ Fíjate en `iss`, `exp`, `preferred_username`, `realm_access.roles`.
 curl -s http://keycloak.localtest.me/realms/curso/.well-known/openid-configuration | jq '{issuer, jwks_uri, token_endpoint}'
 ```
 
-> 🧠 **¿Qué acaba de pasar?** El documento *discovery* de OIDC describe el realm: quién emite (`issuer`), dónde pedir tokens y dónde están las claves públicas (`jwks_uri`). Spring Boot lo usa para autoconfigurarse; en el módulo 09 apuntaremos directamente al `jwks_uri` interno (`http://keycloak:8080/...`).
+> **¿Qué acaba de pasar?** El documento *discovery* de OIDC describe el realm: quién emite (`issuer`), dónde pedir tokens y dónde están las claves públicas (`jwks_uri`). Spring Boot lo usa para autoconfigurarse; en el módulo 09 apuntaremos directamente al `jwks_uri` interno (`http://keycloak:8080/...`).
 
 ### Verificar que usa PostgreSQL
 
@@ -141,7 +135,7 @@ kubectl rollout restart deploy/keycloak -n dev
 
 Al reiniciar, tus cambios hechos en la consola (nuevos usuarios, etc.) **persisten** gracias a PostgreSQL.
 
-> 🧠 **¿Qué acaba de pasar?** `rollout restart` cambia una anotación del template, así que el Deployment crea un Pod nuevo y borra el viejo. El Pod no guarda nada en disco: todo el estado (realms, usuarios, sesiones persistentes) vive en PostgreSQL, cuyo PVC sobrevive. El realm no se reimporta porque ya existe en la BD.
+> **¿Qué acaba de pasar?** `rollout restart` cambia una anotación del template, así que el Deployment crea un Pod nuevo y borra el viejo. El Pod no guarda nada en disco: todo el estado (realms, usuarios, sesiones persistentes) vive en PostgreSQL, cuyo PVC sobrevive. El realm no se reimporta porque ya existe en la BD.
 
 ## Problemas frecuentes
 
@@ -153,7 +147,7 @@ Al reiniciar, tus cambios hechos en la consola (nuevos usuarios, etc.) **persist
 | El realm no se importó | Ya existía en la BD (el import no sobreescribe). Bórralo desde la consola o recrea la BD |
 | `Invalid user credentials` | Realm distinto o contraseña mal; comprueba `/realms/curso` |
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Keycloak centraliza el login; tus APIs solo **validan** JWT, no gestionan usuarios.
 - El JWT va firmado con la clave privada del realm; la API lo verifica con la pública (JWKS), sin llamar a Keycloak en cada request.
@@ -175,4 +169,4 @@ Al reiniciar, tus cambios hechos en la consola (nuevos usuarios, etc.) **persist
 5. `--import-realm` omite realms que ya existen. Habría que borrar el realm o usar la Admin REST API / `keycloak-config-cli` para cambios incrementales.
 </details>
 
-➡️ Siguiente: [Módulo 09 — Microservicio Spring Boot](../09-microservicio-spring/README.md)
+Siguiente: [Módulo 09 — Microservicio Spring Boot](../09-microservicio-spring/README.md)

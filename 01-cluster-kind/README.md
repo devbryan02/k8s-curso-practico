@@ -5,7 +5,7 @@
 - Crear un cluster multi-nodo con puertos 80/443 expuestos (para Ingress).
 - Cargar imágenes locales al cluster.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **Cluster**: conjunto de nodos gestionados por un control plane común. Para ti, una sola API a la que pides cosas.
 - **Nodo**: máquina (aquí, contenedor Docker) donde corren Pods. Puede ser control-plane o worker.
@@ -20,11 +20,12 @@
 
 **kind** = *Kubernetes IN Docker*. Cada **nodo** del cluster es un **contenedor Docker** que a su vez corre `containerd` y los componentes de Kubernetes.
 
-```
-Windows ── WSL2 ── Docker
-                    ├─ contenedor curso-control-plane  (API server, etcd, scheduler...)
-                    ├─ contenedor curso-worker
-                    └─ contenedor curso-worker2
+```mermaid
+flowchart TD
+    WIN["Windows"] --> DD["Docker Desktop"]
+    DD --> CP["contenedor curso-control-plane<br/>API server, etcd, scheduler..."]
+    DD --> W1["contenedor curso-worker"]
+    DD --> W2["contenedor curso-worker2"]
 ```
 
 Kubernetes funciona por **estado deseado**. Tú no dices "arranca este contenedor"; guardas en la API un objeto que describe lo que quieres. El api-server lo persiste en etcd. El scheduler decide en qué nodo va cada Pod. Los controladores comparan deseado vs real y corrigen. El kubelet de cada nodo ejecuta lo que le toca.
@@ -33,7 +34,7 @@ En un cluster real cada nodo es una VM o servidor físico. kind los sustituye po
 
 ```mermaid
 flowchart LR
-    KUBECTL["kubectl en Fedora"] -- "HTTPS :6443" --> API
+    KUBECTL["kubectl en Windows"] -- "HTTPS :6443" --> API
     subgraph CP["curso-control-plane - contenedor Docker"]
         API["kube-apiserver"]
         ETCD[("etcd")]
@@ -83,7 +84,7 @@ El mapeo de puertos es lo que luego permite abrir `http://algo.localtest.me` des
 
 ```mermaid
 flowchart LR
-    NAV["Navegador Windows localhost:80/443"] -- "localhost forwarding" --> HOST["Fedora WSL2 puertos 80/443"]
+    NAV["Navegador Windows localhost:80/443"] -- "puertos publicados" --> HOST["Docker Desktop puertos 80/443"]
     HOST -- "extraPortMappings hostPort a containerPort" --> NODE["contenedor curso-control-plane :80/:443"]
     NODE -- "módulo 07" --> ING["ingress-nginx en el nodo ingress-ready=true"]
 ```
@@ -99,7 +100,7 @@ kubectl get nodes -o wide
 kubectl get pods -A
 ```
 
-> 🧠 **¿Qué acaba de pasar?** kind lanzó 3 contenedores con la imagen `kindest/node`, ejecutó `kubeadm init` en el control-plane y `kubeadm join` en los workers. Instaló el CNI (kindnet) y CoreDNS, y escribió el contexto `kind-curso` en tu `~/.kube/config`. Los Pods de `kube-system` que ves son el propio control plane corriendo como Pods.
+> **¿Qué acaba de pasar?** kind lanzó 3 contenedores con la imagen `kindest/node`, ejecutó `kubeadm init` en el control-plane y `kubeadm join` en los workers. Instaló el CNI (kindnet) y CoreDNS, y escribió el contexto `kind-curso` en tu `~/.kube/config`. Los Pods de `kube-system` que ves son el propio control plane corriendo como Pods.
 
 Mira los contenedores que creó:
 
@@ -107,7 +108,7 @@ Mira los contenedores que creó:
 docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}'
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Para Docker, tus "nodos" son contenedores normales. Solo `curso-control-plane` publica `0.0.0.0:80` y `:443` (por `extraPortMappings`) y un puerto aleatorio de `127.0.0.1` hacia `6443`, que es la API que usa `kubectl`.
+> **¿Qué acaba de pasar?** Para Docker, tus "nodos" son contenedores normales. Solo `curso-control-plane` publica `0.0.0.0:80` y `:443` (por `extraPortMappings`) y un puerto aleatorio de `127.0.0.1` hacia `6443`, que es la API que usa `kubectl`.
 
 Entra a un nodo y mira sus containers (containerd, no Docker):
 
@@ -117,7 +118,7 @@ crictl ps
 exit
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Dentro del nodo no hay Docker: kubelet habla con `containerd` por la interfaz CRI. `crictl` es el cliente de esa interfaz. Verás `kube-proxy` y `kindnet`, que corren en todos los nodos como DaemonSets.
+> **¿Qué acaba de pasar?** Dentro del nodo no hay Docker: kubelet habla con `containerd` por la interfaz CRI. `crictl` es el cliente de esa interfaz. Verás `kube-proxy` y `kindnet`, que corren en todos los nodos como DaemonSets.
 
 ### Contextos de kubectl
 
@@ -129,7 +130,7 @@ kubectl config current-context
 
 > En tu trabajo probablemente tengas varios contextos (dev/qa/prod). **Siempre verifica el contexto antes de aplicar nada.**
 
-> 🧠 **¿Qué acaba de pasar?** `kubectl` no "está conectado" a nada: en cada comando lee `~/.kube/config`, toma el contexto actual (URL del api-server + credenciales + namespace) y hace una petición HTTPS. Cambiar de contexto solo cambia ese puntero.
+> **¿Qué acaba de pasar?** `kubectl` no "está conectado" a nada: en cada comando lee `~/.kube/config`, toma el contexto actual (URL del api-server + credenciales + namespace) y hace una petición HTTPS. Cambiar de contexto solo cambia ese puntero.
 
 ### Cargar una imagen local
 
@@ -144,11 +145,11 @@ docker exec curso-worker crictl images | grep mi-nginx
 
 Regla de oro: usa un **tag explícito** (no `latest`) y `imagePullPolicy: IfNotPresent`, si no Kubernetes intentará bajarla de internet y fallará con `ErrImagePull`.
 
-> 🧠 **¿Qué acaba de pasar?** `kind load` exporta la imagen de tu Docker y la importa en el `containerd` de **cada** nodo. Así, cuando el kubelet necesite `mi-nginx:local`, la encuentra en local y no intenta descargarla de un registry.
+> **¿Qué acaba de pasar?** `kind load` exporta la imagen de tu Docker y la importa en el `containerd` de **cada** nodo. Así, cuando el kubelet necesite `mi-nginx:local`, la encuentra en local y no intenta descargarla de un registry.
 
 ```mermaid
 flowchart LR
-    BUILD["docker build / docker tag"] --> DIMG["Imagen en Docker de Fedora"]
+    BUILD["docker build / docker tag"] --> DIMG["Imagen en Docker Desktop"]
     DIMG -- "kind load docker-image" --> N0["containerd curso-control-plane"]
     DIMG -- "kind load docker-image" --> N1["containerd curso-worker"]
     DIMG -- "kind load docker-image" --> N2["containerd curso-worker2"]
@@ -164,7 +165,7 @@ Desde la raíz del curso:
 ./scripts/down.sh    # elimina el cluster
 ```
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Cada nodo kind es un contenedor Docker con kubelet + containerd dentro.
 - Todo pasa por el **kube-apiserver**; el estado vive en **etcd**; scheduler y controladores reconcilian.
@@ -187,4 +188,4 @@ Desde la raíz del curso:
 4. `kubectl version` y las tags de `kindest/node` en las releases de kind.
 </details>
 
-➡️ Siguiente: [Módulo 02 — Workloads](../02-workloads/README.md)
+Siguiente: [Módulo 02 — Workloads](../02-workloads/README.md)

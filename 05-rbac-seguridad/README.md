@@ -5,7 +5,7 @@
 - Controlar permisos con ServiceAccount, Role y RoleBinding.
 - Endurecer pods con `securityContext`.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **Namespace**: carpeta lógica del cluster. Agrupa recursos y es la unidad para permisos y cuotas.
 - **ResourceQuota**: tope **total** de recursos (CPU, memoria, nº de pods...) que puede consumir un namespace.
@@ -77,7 +77,7 @@ kubectl describe resourcequota demo-quota -n demo
 
 El pod recibió `requests/limits` por defecto gracias al LimitRange.
 
-> 🧠 **¿Qué acaba de pasar?** Al crear el Pod, el API server pasó la petición por los *admission controllers*. El de LimitRange inyectó `requests: 50m/64Mi` y `limits: 200m/256Mi` en el spec. Después el de ResourceQuota comprobó que cabía en el presupuesto y sumó su consumo: lo ves en la columna `Used` del `describe`.
+> **¿Qué acaba de pasar?** Al crear el Pod, el API server pasó la petición por los *admission controllers*. El de LimitRange inyectó `requests: 50m/64Mi` y `limits: 200m/256Mi` en el spec. Después el de ResourceQuota comprobó que cabía en el presupuesto y sumó su consumo: lo ves en la columna `Used` del `describe`.
 
 ### 2. RBAC
 
@@ -99,7 +99,7 @@ Resumen de todo lo que puede hacer:
 kubectl auth can-i --list -n demo --as=system:serviceaccount:demo:app-reader
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `--as` hace que el API server evalúe la petición **como si** viniera de la ServiceAccount (*impersonation*). El autorizador RBAC buscó RoleBindings que la incluyan: solo encontró `app-reader-binding` → `pod-reader`, que permite `get/list/watch` sobre pods en `demo`. Todo lo demás se deniega por defecto.
+> **¿Qué acaba de pasar?** `--as` hace que el API server evalúe la petición **como si** viniera de la ServiceAccount (*impersonation*). El autorizador RBAC buscó RoleBindings que la incluyan: solo encontró `app-reader-binding` → `pod-reader`, que permite `get/list/watch` sobre pods en `demo`. Todo lo demás se deniega por defecto.
 
 ### 3. Pod endurecido
 
@@ -111,7 +111,7 @@ kubectl exec secure-pod -n demo -- sh -c 'touch /x' # falla: FS de solo lectura
 
 > Tu imagen Spring (módulo 09) corre con `USER 1001`, y por eso este contexto de seguridad encaja. Si necesitas escribir (`/tmp`), monta un `emptyDir`.
 
-> 🧠 **¿Qué acaba de pasar?** El kubelet pidió al runtime arrancar el proceso con UID/GID 1001, sin capabilities de Linux, con el perfil seccomp por defecto y el FS raíz montado en solo lectura. Por eso `id` muestra `uid=1001` y `touch /x` falla. Además, con `automountServiceAccountToken: false` el Pod no recibe token: no puede hablar con la API aunque tenga ServiceAccount.
+> **¿Qué acaba de pasar?** El kubelet pidió al runtime arrancar el proceso con UID/GID 1001, sin capabilities de Linux, con el perfil seccomp por defecto y el FS raíz montado en solo lectura. Por eso `id` muestra `uid=1001` y `touch /x` falla. Además, con `automountServiceAccountToken: false` el Pod no recibe token: no puede hablar con la API aunque tenga ServiceAccount.
 
 ## Limpieza
 
@@ -119,7 +119,7 @@ kubectl exec secure-pod -n demo -- sh -c 'touch /x' # falla: FS de solo lectura
 kubectl delete namespace demo
 ```
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Namespace = unidad de organización, permisos y cuotas; **no** aísla la red por sí solo.
 - ResourceQuota limita el total del namespace; LimitRange pone defaults por contenedor.
@@ -145,4 +145,4 @@ kubectl delete namespace demo
 4. `forbidden: exceeded quota: demo-quota`.
 </details>
 
-➡️ Siguiente: [Módulo 06 — Persistencia y bases de datos](../06-persistencia-bases-de-datos/README.md)
+Siguiente: [Módulo 06 — Persistencia y bases de datos](../06-persistencia-bases-de-datos/README.md)

@@ -5,7 +5,7 @@
 - Desplegar el chart del microservicio **desde Git**.
 - Ver *sync*, *drift* y *self-heal* en acción.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **GitOps**: forma de operar donde Git guarda el estado deseado y un agente en el cluster lo aplica y lo vigila.
 - **ArgoCD**: herramienta GitOps que corre dentro del cluster, lee repos Git y reconcilia los recursos.
@@ -16,7 +16,7 @@
 - **Prune**: ArgoCD borra del cluster los recursos que ya no existen en Git.
 - **Pull vs push**: en GitOps el cluster *tira* de Git (pull); en un CI clásico el pipeline *empuja* con `kubectl`/`helm` (push).
 
-## 📚 Teoría
+## Teoría
 
 **GitOps**: Git es la **única fuente de verdad** del estado deseado. Un agente dentro del cluster (ArgoCD) compara continuamente Git ↔ cluster y los reconcilia.
 
@@ -43,13 +43,6 @@ sequenceDiagram
     K8s-->>Argo: OutOfSync, hay drift
     Argo->>K8s: selfHeal, vuelve a 3 réplicas
 ```
-
-<details><summary>Versión texto</summary>
-
-```
-dev ──push──▶ Git repo ◀──pull/compara── ArgoCD (en el cluster) ──aplica──▶ Kubernetes
-```
-</details>
 
 Ventajas: auditoría (cada cambio es un commit/PR), rollback = `git revert`, el CI no necesita credenciales del cluster, detección de *drift* (alguien tocó algo a mano).
 
@@ -99,7 +92,7 @@ kubectl rollout status deploy/argocd-server -n argocd --timeout=300s
 kubectl get pods -n argocd
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Instalaste los CRDs de ArgoCD (`Application`, `AppProject`...) y sus componentes: `argocd-repo-server` (clona Git y renderiza Helm), `argocd-application-controller` (compara y aplica) y `argocd-server` (UI/API). Se usa `--server-side` porque algunos CRDs son demasiado grandes para el `apply` clásico (annotation `last-applied-configuration`).
+> **¿Qué acaba de pasar?** Instalaste los CRDs de ArgoCD (`Application`, `AppProject`...) y sus componentes: `argocd-repo-server` (clona Git y renderiza Helm), `argocd-application-controller` (compara y aplica) y `argocd-server` (UI/API). Se usa `--server-side` porque algunos CRDs son demasiado grandes para el `apply` clásico (annotation `last-applied-configuration`).
 
 ### Acceder a la UI
 
@@ -128,7 +121,7 @@ En la UI verás el árbol de recursos (Deployment → ReplicaSet → Pods, Servi
 curl http://api.localtest.me/api/public/ping
 ```
 
-> 🧠 **¿Qué acaba de pasar?** La Application dice: rama `main`, path `10-helm/charts/products-api`, release `products-api`, destino namespace `dev`. El repo-server clonó el repo y renderizó el chart; el controller aplicó los manifests. Como `syncPolicy.automated` tiene `prune: true` y `selfHeal: true`, a partir de ahora ArgoCD es el dueño de esos recursos.
+> **¿Qué acaba de pasar?** La Application dice: rama `main`, path `10-helm/charts/products-api`, release `products-api`, destino namespace `dev`. El repo-server clonó el repo y renderizó el chart; el controller aplicó los manifests. Como `syncPolicy.automated` tiene `prune: true` y `selfHeal: true`, a partir de ahora ArgoCD es el dueño de esos recursos.
 
 ## 3. Flujo GitOps
 
@@ -142,7 +135,7 @@ git commit -am "scale a 3" && git push
 
 ArgoCD sincroniza solo (por defecto detecta cada ~3 min; pulsa **Refresh** en la UI para acelerarlo).
 
-> 🧠 **¿Qué acaba de pasar?** No tocaste el cluster. ArgoCD vio un commit nuevo, renderizó el chart con `replicaCount: 3`, detectó diferencia (OutOfSync) y aplicó el Deployment. Después actuó el controlador de Deployments de siempre: creó un pod más.
+> **¿Qué acaba de pasar?** No tocaste el cluster. ArgoCD vio un commit nuevo, renderizó el chart con `replicaCount: 3`, detectó diferencia (OutOfSync) y aplicó el Deployment. Después actuó el controlador de Deployments de siempre: creó un pod más.
 
 ### b) Drift y self-heal
 
@@ -151,7 +144,7 @@ kubectl scale deploy/products-api -n dev --replicas=1
 kubectl get pods -n dev -w          # ArgoCD lo revierte a lo que dice Git
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Tu `kubectl scale` cambió el estado real. ArgoCD vigila los recursos que gestiona; vio que `replicas` ya no coincidía con Git (drift) y, con `selfHeal: true`, volvió a aplicar el valor de Git. Por eso verás pods que se crean, se borran y se vuelven a crear.
+> **¿Qué acaba de pasar?** Tu `kubectl scale` cambió el estado real. ArgoCD vigila los recursos que gestiona; vio que `replicas` ya no coincidía con Git (drift) y, con `selfHeal: true`, volvió a aplicar el valor de Git. Por eso verás pods que se crean, se borran y se vuelven a crear.
 
 ### c) Rollback
 
@@ -159,7 +152,7 @@ kubectl get pods -n dev -w          # ArgoCD lo revierte a lo que dice Git
 git revert HEAD && git push
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `git revert` crea un commit nuevo que deshace el anterior. Para ArgoCD es un cambio más: lo sincroniza igual. El rollback queda auditado en Git, no en el historial de un `helm rollback`.
+> **¿Qué acaba de pasar?** `git revert` crea un commit nuevo que deshace el anterior. Para ArgoCD es un cambio más: lo sincroniza igual. El rollback queda auditado en Git, no en el historial de un `helm rollback`.
 
 ### d) Sync manual
 
@@ -191,7 +184,7 @@ kubectl delete -f 12-gitops-argocd/application.yaml
 kubectl delete namespace argocd
 ```
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - En GitOps el estado deseado vive en Git; ArgoCD lo aplica desde dentro del cluster (pull).
 - Una Application = repo + path + revisión → cluster + namespace.
@@ -213,4 +206,4 @@ kubectl delete namespace argocd
 4. ApplicationSet + generador `list` o `git directories`.
 </details>
 
-➡️ Siguiente: [Módulo 13 — Proyecto final](../13-proyecto-final/README.md)
+Siguiente: [Módulo 13 — Proyecto final](../13-proyecto-final/README.md)

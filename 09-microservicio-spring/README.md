@@ -8,7 +8,7 @@ Aquí se junta todo: tu stack real (**Java + Spring Boot + JPA + MySQL**) corrie
 - Usar las probes de Actuator.
 - Llamar a la API con un token de Keycloak.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **Multi-stage build**: Dockerfile con varias etapas; la etapa `build` (Maven + JDK) compila y la `runtime` (solo JRE) copia el JAR. La imagen final es más pequeña y sin herramientas de compilación.
 - **`kind load docker-image`**: copia una imagen de tu Docker local a los nodos de kind. Sustituye al registry en el curso.
@@ -66,7 +66,7 @@ Una petición autenticada dentro del cluster:
 
 ```mermaid
 sequenceDiagram
-    participant C as curl en WSL
+    participant C as curl
     participant I as Ingress api.localtest.me
     participant S as Service products-api 8080
     participant P as Pod products-api
@@ -104,7 +104,7 @@ kind load docker-image products-api:1.0.0 --name curso
 
 (La primera build tarda: descarga Maven y dependencias.)
 
-> 🧠 **¿Qué acaba de pasar?** Docker ejecutó las dos etapas: Maven compiló el JAR (la capa de `dependency:go-offline` queda en cache mientras no cambie `pom.xml`) y la etapa final solo copió `app.jar` sobre un JRE. Después, `kind load` metió la imagen en el containerd de cada nodo kind: los nodos no ven tu Docker local, por eso este paso es obligatorio.
+> **¿Qué acaba de pasar?** Docker ejecutó las dos etapas: Maven compiló el JAR (la capa de `dependency:go-offline` queda en cache mientras no cambie `pom.xml`) y la etapa final solo copió `app.jar` sobre un JRE. Después, `kind load` metió la imagen en el containerd de cada nodo kind: los nodos no ven tu Docker local, por eso este paso es obligatorio.
 
 ### 2. Desplegar
 
@@ -115,7 +115,7 @@ kubectl rollout status deploy/products-api -n dev --timeout=300s
 kubectl get pods,svc,ingress -n dev
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Se crearon ConfigMap, Deployment (2 réplicas), Service e Ingress `api.localtest.me`. Con `imagePullPolicy: IfNotPresent` el kubelet usa la imagen ya cargada y no intenta descargarla. Cada pod arranca la JVM, Hibernate crea la tabla `products` en MySQL (`ddl-auto: update`) y, cuando `/actuator/health/readiness` responde UP, el pod entra en los Endpoints del Service.
+> **¿Qué acaba de pasar?** Se crearon ConfigMap, Deployment (2 réplicas), Service e Ingress `api.localtest.me`. Con `imagePullPolicy: IfNotPresent` el kubelet usa la imagen ya cargada y no intenta descargarla. Cada pod arranca la JVM, Hibernate crea la tabla `products` en MySQL (`ddl-auto: update`) y, cuando `/actuator/health/readiness` responde UP, el pod entra en los Endpoints del Service.
 
 ### 3. Probar
 
@@ -138,7 +138,7 @@ curl -s -X POST http://api.localtest.me/api/products \
 curl -s -H "Authorization: Bearer $TOKEN" http://api.localtest.me/api/products | jq
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `/api/public/**` está en `permitAll()`, por eso responde sin token y muestra el `HOSTNAME` del pod que atendió. Sin token, el filtro de Resource Server devuelve `401`. Con token, Spring descargó el JWKS desde `http://keycloak:8080/...` (DNS interno), verificó firma y `exp`, y `whoami` te muestra los claims. Observa que `issuer` es `keycloak.localtest.me`: la URL pública con la que pediste el token.
+> **¿Qué acaba de pasar?** `/api/public/**` está en `permitAll()`, por eso responde sin token y muestra el `HOSTNAME` del pod que atendió. Sin token, el filtro de Resource Server devuelve `401`. Con token, Spring descargó el JWKS desde `http://keycloak:8080/...` (DNS interno), verificó firma y `exp`, y `whoami` te muestra los claims. Observa que `issuer` es `keycloak.localtest.me`: la URL pública con la que pediste el token.
 
 ### 4. Verificar en MySQL
 
@@ -146,7 +146,7 @@ curl -s -H "Authorization: Bearer $TOKEN" http://api.localtest.me/api/products |
 kubectl exec -it mysql-0 -n dev -- mysql -uappuser -papppass productsdb -e "SELECT * FROM products;"
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Entraste al contenedor de MySQL y consultaste la tabla que creó Hibernate. Los datos están en el PVC del StatefulSet, no en los pods de la API: puedes borrar o escalar `products-api` sin perder nada.
+> **¿Qué acaba de pasar?** Entraste al contenedor de MySQL y consultaste la tabla que creó Hibernate. Los datos están en el PVC del StatefulSet, no en los pods de la API: puedes borrar o escalar `products-api` sin perder nada.
 
 ### 5. Ciclo de desarrollo: nueva versión
 
@@ -162,7 +162,7 @@ kubectl rollout status deploy/products-api -n dev
 
 **Siempre cambia el tag.** Con `latest` o el mismo tag, K8s no sabe que la imagen cambió.
 
-> 🧠 **¿Qué acaba de pasar?** `set image` cambió el template del Deployment, lo que creó un ReplicaSet nuevo. Con `maxSurge: 1` y `maxUnavailable: 0` se levanta un pod 1.0.1, se espera a que esté *ready* y solo entonces se elimina uno 1.0.0 (que termina con graceful shutdown). Se repite hasta reemplazar las 2 réplicas.
+> **¿Qué acaba de pasar?** `set image` cambió el template del Deployment, lo que creó un ReplicaSet nuevo. Con `maxSurge: 1` y `maxUnavailable: 0` se levanta un pod 1.0.1, se espera a que esté *ready* y solo entonces se elimina uno 1.0.0 (que termina con graceful shutdown). Se repite hasta reemplazar las 2 réplicas.
 
 ### 6. Depuración típica
 
@@ -180,7 +180,7 @@ kubectl exec -it deploy/products-api -n dev -- sh -c 'env | grep -E "DB_|JWK"'
 | `401` con token válido | `JWK_SET_URI` mal o token expirado (5 min por defecto) |
 | `OOMKilled` | Sube `limits.memory` |
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Una sola imagen para todos los entornos; la config entra por ConfigMap/Secret como variables de entorno.
 - En kind, `docker build` + `kind load` + tag nuevo en cada versión (nunca reutilices el tag).
@@ -204,4 +204,4 @@ kubectl exec -it deploy/products-api -n dev -- sh -c 'env | grep -E "DB_|JWK"'
 5. Usa `@EnableMethodSecurity` y `@PreAuthorize("hasRole('admin')")`; el converter debe añadir autoridades `ROLE_<rol>` desde `realm_access.roles`.
 </details>
 
-➡️ Siguiente: [Módulo 10 — Helm](../10-helm/README.md)
+Siguiente: [Módulo 10 — Helm](../10-helm/README.md)

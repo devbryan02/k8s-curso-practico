@@ -5,7 +5,7 @@
 - Inyectar config como variables de entorno y como archivos.
 - Entender las limitaciones de seguridad de los Secrets.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **ConfigMap**: objeto que guarda pares clave/valor o archivos de configuración **no sensible**.
 - **Secret**: objeto parecido al ConfigMap para datos sensibles. Se guarda en base64, que es codificación, no cifrado.
@@ -31,8 +31,8 @@ Formas de consumirlos:
 
 | Forma | Se actualiza al cambiar el ConfigMap/Secret? |
 |-------|-----------------------------------------------|
-| Variable de entorno (`env`, `envFrom`) | ❌ Requiere reiniciar el pod |
-| Archivo montado como volumen | ✅ (con un retraso de ~1 min), pero tu app debe releerlo |
+| Variable de entorno (`env`, `envFrom`) | No: requiere reiniciar el pod |
+| Archivo montado como volumen | Sí (con un retraso de ~1 min), pero tu app debe releerlo |
 
 Para Spring Boot, lo más común: variables de entorno (`SPRING_DATASOURCE_URL`, etc.) o montar un `application.yml`.
 
@@ -80,7 +80,7 @@ kubectl apply -f configmap.yaml -f secret.yaml -f consumer.yaml
 kubectl logs consumer -n demo
 ```
 
-> 🧠 **¿Qué acaba de pasar?** El API server guardó `app-config` y `app-secret` en etcd. El scheduler asignó el Pod `consumer` a un nodo y el kubelet, antes de arrancar el contenedor, leyó ambos objetos: los convirtió en variables de entorno y escribió los archivos en `/config` y `/secrets`. Los logs muestran `env | sort` y el contenido de `application.properties`.
+> **¿Qué acaba de pasar?** El API server guardó `app-config` y `app-secret` en etcd. El scheduler asignó el Pod `consumer` a un nodo y el kubelet, antes de arrancar el contenedor, leyó ambos objetos: los convirtió en variables de entorno y escribió los archivos en `/config` y `/secrets`. Los logs muestran `env | sort` y el contenido de `application.properties`.
 
 ### Crear desde la CLI
 
@@ -89,7 +89,7 @@ kubectl create configmap otro --from-literal=A=1 --from-file=application.propert
 kubectl create secret generic db --from-literal=password=abc123 -n demo
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Con `--dry-run=client -o yaml` kubectl solo **genera** el YAML, no crea nada: útil para obtener un manifiesto base. El segundo comando sí crea el Secret `db`; kubectl codifica el valor en base64 por ti.
+> **¿Qué acaba de pasar?** Con `--dry-run=client -o yaml` kubectl solo **genera** el YAML, no crea nada: útil para obtener un manifiesto base. El segundo comando sí crea el Secret `db`; kubectl codifica el valor en base64 por ti.
 
 ### Los Secrets NO están cifrados
 
@@ -98,7 +98,7 @@ kubectl get secret app-secret -n demo -o yaml
 kubectl get secret app-secret -n demo -o jsonpath='{.data.DB_PASSWORD}' | base64 -d; echo
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Escribiste `stringData` en texto plano y la API lo guardó en `data` en base64. Con un simple `base64 -d` recuperas `s3cr3t-curso`. La protección real de un Secret es **quién puede hacer `get`** (RBAC), no la codificación.
+> **¿Qué acaba de pasar?** Escribiste `stringData` en texto plano y la API lo guardó en `data` en base64. Con un simple `base64 -d` recuperas `s3cr3t-curso`. La protección real de un Secret es **quién puede hacer `get`** (RBAC), no la codificación.
 
 ### Cambiar config y reiniciar
 
@@ -110,7 +110,7 @@ kubectl logs consumer -n demo | grep LOG_LEVEL
 
 En un Deployment bastaría `kubectl rollout restart deployment/<nombre>`.
 
-> 🧠 **¿Qué acaba de pasar?** Al editar el ConfigMap, el Pod viejo seguía con `LOG_LEVEL=INFO`: las variables de entorno se fijan al crear el proceso. Al recrear el Pod, el kubelet volvió a leer el ConfigMap y el nuevo contenedor arrancó con `DEBUG`. `rollout restart` hace lo mismo en un Deployment, Pod a Pod y sin cortar el servicio.
+> **¿Qué acaba de pasar?** Al editar el ConfigMap, el Pod viejo seguía con `LOG_LEVEL=INFO`: las variables de entorno se fijan al crear el proceso. Al recrear el Pod, el kubelet volvió a leer el ConfigMap y el nuevo contenedor arrancó con `DEBUG`. `rollout restart` hace lo mismo en un Deployment, Pod a Pod y sin cortar el servicio.
 
 ## Limpieza
 
@@ -118,7 +118,7 @@ En un Deployment bastaría `kubectl rollout restart deployment/<nombre>`.
 kubectl delete namespace demo
 ```
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - ConfigMap = config no sensible; Secret = datos sensibles con permisos aparte.
 - base64 **no es cifrado**: protege los Secrets con RBAC, cifrado en etcd y gestores externos.
@@ -140,4 +140,4 @@ kubectl delete namespace demo
 4. Alternativas: Sealed Secrets, External Secrets Operator + Vault/AWS Secrets Manager, SOPS.
 </details>
 
-➡️ Siguiente: [Módulo 05 — Namespaces, RBAC y seguridad](../05-rbac-seguridad/README.md)
+Siguiente: [Módulo 05 — Namespaces, RBAC y seguridad](../05-rbac-seguridad/README.md)

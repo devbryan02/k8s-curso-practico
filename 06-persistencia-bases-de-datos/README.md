@@ -5,7 +5,7 @@
 - Desplegar MySQL (para tu microservicio) y PostgreSQL (para Keycloak) con **StatefulSet**.
 - Comprobar que los datos sobreviven a la muerte del pod.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **PersistentVolume (PV)**: un trozo de almacenamiento real del cluster (disco, carpeta del nodo, volumen cloud). Vive fuera del ciclo de vida del Pod.
 - **PersistentVolumeClaim (PVC)**: la petición de almacenamiento de una app: "quiero 1Gi, ReadWriteOnce". Kubernetes la enlaza (*bind*) con un PV.
@@ -40,7 +40,7 @@ flowchart LR
 
 **¿Por qué StatefulSet y no Deployment?** Las réplicas de un Deployment son intercambiables y compartirían la misma plantilla de volumen. Una BD necesita identidad: `mysql-0` debe volver a montar **siempre** `data-mysql-0`, aunque se recree en otro momento. El StatefulSet garantiza nombre estable, PVC propio y arranque ordenado (`-0`, luego `-1`...). El headless Service da a cada réplica su DNS fijo.
 
-> ⚠️ En producción NO se suele correr la BD dentro del cluster (se usa RDS/Cloud SQL/etc.) o se usa un operador (Percona, CloudNativePG, Zalando). Aquí lo hacemos para aprender persistencia.
+> **Atención:** En producción NO se suele correr la BD dentro del cluster (se usa RDS/Cloud SQL/etc.) o se usa un operador (Percona, CloudNativePG, Zalando). Aquí lo hacemos para aprender persistencia.
 
 Cómo el StatefulSet `mysql` genera sus piezas:
 
@@ -79,7 +79,7 @@ kubectl get sts,pods,pvc,pv
 kubectl rollout status sts/mysql
 ```
 
-> 🧠 **¿Qué acaba de pasar?** El controlador de StatefulSet creó el PVC `data-mysql-0` a partir de `volumeClaimTemplates` y luego el Pod `mysql-0`. La StorageClass `standard` espera a que el Pod tenga nodo asignado (*WaitForFirstConsumer*); entonces el provisioner local-path crea una carpeta en ese nodo, crea el PV y lo enlaza al PVC (`STATUS Bound`). Al primer arranque, MySQL inicializa `/var/lib/mysql` con los datos del Secret.
+> **¿Qué acaba de pasar?** El controlador de StatefulSet creó el PVC `data-mysql-0` a partir de `volumeClaimTemplates` y luego el Pod `mysql-0`. La StorageClass `standard` espera a que el Pod tenga nodo asignado (*WaitForFirstConsumer*); entonces el provisioner local-path crea una carpeta en ese nodo, crea el PV y lo enlaza al PVC (`STATUS Bound`). Al primer arranque, MySQL inicializa `/var/lib/mysql` con los datos del Secret.
 
 ### Usar MySQL
 
@@ -93,7 +93,7 @@ SELECT * FROM prueba;
 EXIT;
 ```
 
-### Prueba de persistencia 🔥
+### Prueba de persistencia 
 
 ```bash
 kubectl delete pod mysql-0
@@ -103,7 +103,7 @@ kubectl exec -it mysql-0 -- mysql -uappuser -papppass productsdb -e "SELECT * FR
 
 Los datos siguen ahí porque el PVC `data-mysql-0` no se borra con el pod.
 
-> 🧠 **¿Qué acaba de pasar?** Borraste el Pod, pero no el PVC ni el PV. El StatefulSet detectó que faltaba `mysql-0` y lo recreó **con el mismo nombre**, así que volvió a montar el mismo `data-mysql-0`. MySQL encontró sus archivos y arrancó con la tabla `prueba` intacta.
+> **¿Qué acaba de pasar?** Borraste el Pod, pero no el PVC ni el PV. El StatefulSet detectó que faltaba `mysql-0` y lo recreó **con el mismo nombre**, así que volvió a montar el mismo `data-mysql-0`. MySQL encontró sus archivos y arrancó con la tabla `prueba` intacta.
 
 ```mermaid
 sequenceDiagram
@@ -127,7 +127,7 @@ kubectl rollout status sts/postgres
 kubectl exec -it postgres-0 -- psql -U keycloak -d keycloak -c '\conninfo'
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Mismo patrón: StatefulSet `postgres`, PVC `data-postgres-0` y Service headless en el puerto 5432. `PGDATA` apunta a una subcarpeta porque Postgres exige un directorio vacío y algunos volúmenes traen `lost+found`. Esta BD la usará Keycloak más adelante.
+> **¿Qué acaba de pasar?** Mismo patrón: StatefulSet `postgres`, PVC `data-postgres-0` y Service headless en el puerto 5432. `PGDATA` apunta a una subcarpeta porque Postgres exige un directorio vacío y algunos volúmenes traen `lost+found`. Esta BD la usará Keycloak más adelante.
 
 ### ¿Dónde están físicamente los datos?
 
@@ -139,7 +139,7 @@ docker exec curso-worker2 ls /var/local-path-provisioner
 
 (Dentro del contenedor del nodo kind; si recreas el cluster, **se pierden**.)
 
-> 🧠 **¿Qué acaba de pasar?** Los nodos de kind son contenedores Docker. El provisioner local-path guarda cada PV como una carpeta dentro de ese contenedor. Por eso el PV queda atado a un nodo concreto (`nodeAffinity`) y desaparece si borras el cluster.
+> **¿Qué acaba de pasar?** Los nodos de kind son contenedores Docker. El provisioner local-path guarda cada PV como una carpeta dentro de ese contenedor. Por eso el PV queda atado a un nodo concreto (`nodeAffinity`) y desaparece si borras el cluster.
 
 ### Backup y restore (esto sí lo harás en el trabajo)
 
@@ -150,15 +150,15 @@ kubectl exec mysql-0 -- sh -c 'mysqldump -uroot -p"$MYSQL_ROOT_PASSWORD" product
 kubectl exec -i mysql-0 -- sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" productsdb' < backup.sql
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `kubectl exec` ejecuta `mysqldump` dentro del Pod y la salida viaja por la conexión de kubectl hasta tu archivo local. El restore hace el camino inverso con `-i` (stdin). Las comillas simples evitan que tu shell expanda `$MYSQL_ROOT_PASSWORD`: se expande dentro del contenedor.
+> **¿Qué acaba de pasar?** `kubectl exec` ejecuta `mysqldump` dentro del Pod y la salida viaja por la conexión de kubectl hasta tu archivo local. El restore hace el camino inverso con `-i` (stdin). Las comillas simples evitan que tu shell expanda `$MYSQL_ROOT_PASSWORD`: se expande dentro del contenedor.
 
-## ⚠️ Cuidado con
+## Cuidado con
 
 - **Borrar un StatefulSet NO borra sus PVC** (por seguridad). Para limpiar: `kubectl delete pvc -l app=mysql`.
 - Cambiar `MYSQL_ROOT_PASSWORD` en el Secret **no** cambia la contraseña real si el volumen ya se inicializó. Las variables solo aplican en el primer arranque.
 - `replicas: 1` aquí. Replicar MySQL/Postgres de verdad requiere configurar replicación; **no** basta con subir `replicas`.
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - El Pod pide almacenamiento con un **PVC**; la **StorageClass** crea el **PV** real bajo demanda.
 - Los datos viven en el PV, no en el Pod: borrar el Pod no borra los datos.
@@ -181,4 +181,4 @@ kubectl exec -i mysql-0 -- sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" products
 4. El PV queda atado al nodo donde se creó; el pod solo puede programarse allí.
 </details>
 
-➡️ Siguiente: [Módulo 07 — Ingress](../07-ingress/README.md)
+Siguiente: [Módulo 07 — Ingress](../07-ingress/README.md)

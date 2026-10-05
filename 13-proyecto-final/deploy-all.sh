@@ -30,4 +30,4 @@ curl -fsS http://api.localtest.me/api/public/ping && echo
 TOKEN=$(curl -fsS -X POST http://keycloak.localtest.me/realms/curso/protocol/openid-connect/token \
   -d grant_type=password -d client_id=curso-client -d username=alice -d password=alice123 | jq -r .access_token)
 curl -fsS -H "Authorization: Bearer $TOKEN" http://api.localtest.me/api/whoami && echo
-echo "OK ✅"
+echo "OK"

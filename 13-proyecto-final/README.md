@@ -4,7 +4,7 @@
 
 Levantar **todo el sistema desde cero** y demostrar que lo dominas. Hay tres niveles; haz al menos el 1 y el 2.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **Smoke test**: prueba mínima tras un despliegue para confirmar que lo básico responde (aquí: `/api/public/ping` y `/api/whoami` con token).
 - **Orden de dependencias**: las piezas se levantan en orden (BDs → Keycloak → API) porque cada una necesita la anterior para arrancar sana.
@@ -13,7 +13,7 @@ Levantar **todo el sistema desde cero** y demostrar que lo dominas. Hay tres niv
 - **NetworkPolicy**: reglas de firewall entre pods por labels. Solo funcionan si el CNI las implementa (kindnet no lo hace; Calico o Cilium sí).
 - **Infraestructura reproducible**: poder borrar todo y recrearlo con un script o desde Git, sin pasos manuales.
 
-## 📚 Teoría
+## Teoría
 
 Hasta ahora montaste las piezas una a una. Aquí las juntas y compruebas que todo el sistema se puede **reconstruir desde cero** sin pasos a mano. Esa es la prueba real: si no puedes recrearlo, no lo controlas.
 
@@ -25,7 +25,7 @@ El orden importa. `products-api` necesita MySQL (JDBC) y las claves públicas de
 
 ```mermaid
 flowchart TD
-    U["Navegador / curl en Windows o WSL"] --> ING["Ingress NGINX<br/>ns ingress-nginx"]
+    U["Navegador / curl"] --> ING["Ingress NGINX<br/>ns ingress-nginx"]
     ING -->|"api.localtest.me"| API["products-api<br/>Deployment x2"]
     ING -->|"keycloak.localtest.me"| KC["keycloak<br/>Deployment"]
     API -->|"JWKS: valida tokens"| KC
@@ -38,19 +38,6 @@ flowchart TD
         PG
     end
 ```
-
-<details><summary>Versión texto</summary>
-
-```
-Namespace dev:
-  mysql-0 (StatefulSet+PVC)      postgres-0 (StatefulSet+PVC)
-        ▲                                  ▲
-  products-api (x2) ──JWKS──▶ keycloak (Deployment)
-        ▲                          ▲
-        └──── Ingress nginx ───────┘
-   api.localtest.me      keycloak.localtest.me
-```
-</details>
 
 ## Nivel 1 — Despliegue completo con YAML
 
@@ -74,7 +61,7 @@ flowchart LR
 
 **Entregable:** captura de `kubectl get all,pvc,ingress -n dev` y de un `curl` autenticado.
 
-> 🧠 **¿Qué acaba de pasar?** El script repitió los módulos 01, 06, 08 y 09 en orden. Cada `rollout status` bloquea hasta que el StatefulSet o Deployment tiene sus pods Ready (pasan la readiness probe). Al final pidió un token a Keycloak con el usuario `alice` (password grant) y llamó a `/api/whoami`: la API validó la firma del JWT con las claves JWKS de Keycloak. Si eso responde, toda la cadena funciona.
+> **¿Qué acaba de pasar?** El script repitió los módulos 01, 06, 08 y 09 en orden. Cada `rollout status` bloquea hasta que el StatefulSet o Deployment tiene sus pods Ready (pasan la readiness probe). Al final pidió un token a Keycloak con el usuario `alice` (password grant) y llamó a `/api/whoami`: la API validó la firma del JWT con las claves JWKS de Keycloak. Si eso responde, toda la cadena funciona.
 
 ## Nivel 2 — Helm + observabilidad
 
@@ -83,7 +70,7 @@ flowchart LR
 3. Importa el dashboard JVM y demuestra métricas tras generar tráfico.
 4. Configura un HPA de 2 a 5 réplicas y dispáralo con carga.
 
-> 🧠 **Qué cambia:** el mismo microservicio, pero empaquetado como release de Helm (con revisiones y `--atomic`: si falla, rollback automático). El chart crea el ServiceMonitor por ti; Prometheus empieza a hacer scrape y el HPA escala con la CPU.
+> **Qué cambia:** el mismo microservicio, pero empaquetado como release de Helm (con revisiones y `--atomic`: si falla, rollback automático). El chart crea el ServiceMonitor por ti; Prometheus empieza a hacer scrape y el HPA escala con la CPU.
 
 ## Nivel 3 — GitOps y producción simulada
 
@@ -92,9 +79,9 @@ flowchart LR
 3. Añade un `PodDisruptionBudget` (`minAvailable: 1`) y haz `kubectl drain curso-worker --ignore-daemonsets --delete-emptydir-data`. Comprueba que la API no se cae. (Después `kubectl uncordon curso-worker`.)
 4. Añade un `NetworkPolicy` que solo permita que `products-api` hable con MySQL (recuerda: kindnet no la aplica; documenta qué CNI necesitarías).
 
-> 🧠 **Qué cambia:** ya no aplicas nada a mano; ArgoCD es el dueño. El `drain` simula mantenimiento de un nodo: el PDB obliga a que siempre quede al menos 1 pod de la API vivo mientras se reprograman en otro worker. Ojo: el PVC de MySQL usa storage local del nodo; si `mysql-0` vive en el nodo drenado no podrá moverse.
+> **Qué cambia:** ya no aplicas nada a mano; ArgoCD es el dueño. El `drain` simula mantenimiento de un nodo: el PDB obliga a que siempre quede al menos 1 pod de la API vivo mientras se reprograman en otro worker. Ojo: el PVC de MySQL usa storage local del nodo; si `mysql-0` vive en el nodo drenado no podrá moverse.
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Si no puedes recrear el sistema desde cero con un script o desde Git, no lo controlas.
 - Despliega en orden de dependencias y espera a que cada pieza esté Ready (`rollout status`).

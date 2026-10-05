@@ -6,7 +6,7 @@
 - Configurar un HPA.
 - Desplegar Prometheus + Grafana (kube-prometheus-stack) y ver métricas JVM de tu microservicio.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **Observabilidad**: capacidad de saber qué pasa dentro del sistema mirando sus salidas: logs, métricas y trazas.
 - **metrics-server**: componente que recoge CPU/RAM de los kubelets y los expone en la Metrics API. Lo usan `kubectl top` y el HPA. No guarda histórico.
@@ -17,7 +17,7 @@
 - **Grafana**: interfaz de dashboards que consulta Prometheus (PromQL) y dibuja gráficas.
 - **Micrometer / Actuator**: librerías de Spring Boot que exponen métricas JVM y HTTP en `/actuator/prometheus`.
 
-## 📚 Teoría
+## Teoría
 
 | Pilar | Herramienta del curso |
 |-------|-----------------------|
@@ -54,7 +54,7 @@ flowchart LR
     G["Grafana"] -->|"consultas PromQL"| PR
 ```
 
-> ⚠️ kube-prometheus-stack consume ~1.5–2 GB RAM extra. Si tu WSL va justo, borra Keycloak/otros mientras practicas o sube `memory` en `.wslconfig`.
+> **Atención:** kube-prometheus-stack consume ~1.5–2 GB RAM extra. Si Docker Desktop va justo, borra Keycloak/otros mientras practicas o sube la memoria en *Settings → Resources* (o `memory` en `.wslconfig`).
 
 Prerrequisito: `products-api` corriendo en `dev` (módulo 09 o 10).
 
@@ -77,7 +77,7 @@ stern -n dev "mysql|products" --since 5m
 
 > Buena práctica: logs a **stdout/stderr** y en JSON en producción. K8s/agentes (Fluent Bit, Promtail) los recogen del nodo.
 
-> 🧠 **¿Qué acaba de pasar?** El runtime del contenedor guarda lo que tu app escribe en stdout en un archivo del nodo. `kubectl logs` pide ese archivo al kubelet a través del api-server. `--previous` lee el archivo del contenedor que murió; por eso solo existe tras un reinicio. Los events son otra cosa: los escriben los controladores (scheduler, kubelet), no tu app.
+> **¿Qué acaba de pasar?** El runtime del contenedor guarda lo que tu app escribe en stdout en un archivo del nodo. `kubectl logs` pide ese archivo al kubelet a través del api-server. `--previous` lee el archivo del contenedor que murió; por eso solo existe tras un reinicio. Los events son otra cosa: los escriben los controladores (scheduler, kubelet), no tu app.
 
 ## 2. metrics-server y `kubectl top`
 
@@ -93,7 +93,7 @@ kubectl top nodes
 kubectl top pods -n dev
 ```
 
-> 🧠 **¿Qué acaba de pasar?** metrics-server se registró como una API extra (`metrics.k8s.io`) en el api-server. Cada pocos segundos pregunta a cada kubelet cuánta CPU/RAM usan los contenedores. En kind los kubelets usan certificados autofirmados; el flag `--kubelet-insecure-tls` evita que falle la verificación. Si `kubectl top` dice "metrics not available", espera un minuto: aún no hay primera lectura.
+> **¿Qué acaba de pasar?** metrics-server se registró como una API extra (`metrics.k8s.io`) en el api-server. Cada pocos segundos pregunta a cada kubelet cuánta CPU/RAM usan los contenedores. En kind los kubelets usan certificados autofirmados; el flag `--kubelet-insecure-tls` evita que falle la verificación. Si `kubectl top` dice "metrics not available", espera un minuto: aún no hay primera lectura.
 
 ## 3. HPA (autoscaling horizontal)
 
@@ -113,7 +113,7 @@ kubectl run load -n dev --rm -it --image=busybox:1.36 --restart=Never -- \
 
 Observa cómo suben las réplicas; al parar la carga bajan tras ~5 min (ventana de estabilización).
 
-> 🧠 **¿Qué acaba de pasar?** El controlador HPA calcula `réplicas deseadas = réplicas actuales × (CPU actual / 60 %)`. Con carga, la CPU media supera 60 % de 200m (= 120m) y sube `spec.replicas` del Deployment. El Deployment crea pods nuevos y el Service los añade a sus Endpoints, así que la carga se reparte. Para bajar espera 5 min para no oscilar (*flapping*).
+> **¿Qué acaba de pasar?** El controlador HPA calcula `réplicas deseadas = réplicas actuales × (CPU actual / 60 %)`. Con carga, la CPU media supera 60 % de 200m (= 120m) y sube `spec.replicas` del Deployment. El Deployment crea pods nuevos y el Service los añade a sus Endpoints, así que la carga se reparte. Para bajar espera 5 min para no oscilar (*flapping*).
 
 > Si usas Helm (módulo 10) y el chart define `replicas`, un HPA y Helm se "pelean". Por eso el ejercicio 2 del módulo 10 omite `replicas` cuando el HPA está activo.
 
@@ -133,7 +133,7 @@ kubectl get pods -n monitoring -w
 
 (`serviceMonitorSelectorNilUsesHelmValues=false` hace que Prometheus recoja **cualquier** ServiceMonitor, no solo los de su release.)
 
-> 🧠 **¿Qué acaba de pasar?** El chart instaló varias piezas: los CRDs (`ServiceMonitor`, `PrometheusRule`...), el Prometheus Operator, Prometheus, Grafana, node-exporter (métricas del nodo) y kube-state-metrics (estado de los objetos K8s, p. ej. reinicios). El operador vigila los CRDs y reescribe la configuración de Prometheus cuando cambian.
+> **¿Qué acaba de pasar?** El chart instaló varias piezas: los CRDs (`ServiceMonitor`, `PrometheusRule`...), el Prometheus Operator, Prometheus, Grafana, node-exporter (métricas del nodo) y kube-state-metrics (estado de los objetos K8s, p. ej. reinicios). El operador vigila los CRDs y reescribe la configuración de Prometheus cuando cambian.
 
 ### Registrar tu microservicio
 
@@ -143,7 +143,7 @@ kubectl apply -f 11-observabilidad/manifests/servicemonitor.yaml
 
 > El Service de `products-api` debe tener el label `app: products-api` y un puerto **llamado** `http` (ya lo tiene en ambos módulos 09 y 10).
 
-> 🧠 **¿Qué acaba de pasar?** Creaste un objeto que no hace nada por sí mismo. El operador lo detecta, busca Services con `app: products-api` en `dev` y añade a Prometheus un *job* que pide `/actuator/prometheus` a cada pod cada 15 s. El ServiceMonitor apunta al **nombre** del puerto (`http`), no al número: si el puerto no tiene nombre, no hay target.
+> **¿Qué acaba de pasar?** Creaste un objeto que no hace nada por sí mismo. El operador lo detecta, busca Services con `app: products-api` en `dev` y añade a Prometheus un *job* que pide `/actuator/prometheus` a cada pod cada 15 s. El ServiceMonitor apunta al **nombre** del puerto (`http`), no al número: si el puerto no tiene nombre, no hay target.
 
 ### Prometheus
 
@@ -159,7 +159,7 @@ rate(http_server_requests_seconds_count{namespace="dev"}[1m])
 sum by (pod) (container_memory_working_set_bytes{namespace="dev", container="products-api"})
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Las dos primeras métricas vienen de tu app (Micrometer). La tercera viene de cAdvisor, en el kubelet: es la memoria que ve el kernel, la que se compara con `limits.memory` para un OOMKill. `rate(...[1m])` convierte un contador que solo sube en "peticiones por segundo".
+> **¿Qué acaba de pasar?** Las dos primeras métricas vienen de tu app (Micrometer). La tercera viene de cAdvisor, en el kubelet: es la memoria que ve el kernel, la que se compara con `limits.memory` para un OOMKill. `rate(...[1m])` convierte un contador que solo sube en "peticiones por segundo".
 
 ### Grafana
 
@@ -172,7 +172,7 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80
 - Dashboards ya incluidos: *Kubernetes / Compute Resources / Namespace (Pods)*, *Node Exporter*...
 - Importa el dashboard de JVM (Micrometer): *Dashboards → New → Import* → ID **4701**.
 
-> 🧠 **¿Qué acaba de pasar?** Grafana no guarda métricas: el chart lo configuró con Prometheus como *datasource*. Cada panel es una consulta PromQL que se ejecuta al abrir el dashboard.
+> **¿Qué acaba de pasar?** Grafana no guarda métricas: el chart lo configuró con Prometheus como *datasource*. Cada panel es una consulta PromQL que se ejecuta al abrir el dashboard.
 
 ## 5. Logs centralizados (opcional)
 
@@ -186,7 +186,7 @@ kubectl delete namespace monitoring
 kubectl delete -f 11-observabilidad/manifests/hpa.yaml
 ```
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Logs a stdout; `kubectl logs --previous` para ver por qué murió un contenedor.
 - metrics-server = CPU/RAM actuales para `kubectl top` y HPA. Prometheus = histórico, métricas de app y alertas.
@@ -208,4 +208,4 @@ kubectl delete -f 11-observabilidad/manifests/hpa.yaml
 5. CRD `PrometheusRule` con `groups[].rules[].alert`, `expr`, `for: 1m`. El `job` suele ser el nombre del Service (`products-api`).
 </details>
 
-➡️ Siguiente: [Módulo 12 — GitOps con ArgoCD](../12-gitops-argocd/README.md)
+Siguiente: [Módulo 12 — GitOps con ArgoCD](../12-gitops-argocd/README.md)

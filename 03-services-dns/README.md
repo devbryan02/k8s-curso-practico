@@ -5,7 +5,7 @@
 - Usar ClusterIP, headless y port-forward.
 - Dominar el DNS interno (`servicio.namespace.svc.cluster.local`).
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **Service**: nombre e IP virtual estables delante de un grupo de Pods elegidos por `selector`.
 - **ClusterIP**: IP virtual del Service, solo alcanzable dentro del cluster.
@@ -78,7 +78,7 @@ kubectl get svc,endpoints -n demo
 
 `endpoints` te muestra las IPs de los pods detrás del Service. **Si está vacío, el selector no coincide o los pods no están Ready.** Es el error #1 en la vida real.
 
-> 🧠 **¿Qué acaba de pasar?** `backend.yaml` creó un Deployment de 3 Pods `http-echo` (puerto 5678, label `app: backend`) y un Service `backend` tipo ClusterIP en el puerto 80. Kubernetes asignó una ClusterIP, el controlador de endpoints añadió las IPs de los Pods en cuanto pasaron la readiness, y kube-proxy programó las reglas en cada nodo.
+> **¿Qué acaba de pasar?** `backend.yaml` creó un Deployment de 3 Pods `http-echo` (puerto 5678, label `app: backend`) y un Service `backend` tipo ClusterIP en el puerto 80. Kubernetes asignó una ClusterIP, el controlador de endpoints añadió las IPs de los Pods en cuanto pasaron la readiness, y kube-proxy programó las reglas en cada nodo.
 
 ### Probar el DNS desde otro pod
 
@@ -91,7 +91,7 @@ nslookup backend
 exit
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `curl http://backend` preguntó a CoreDNS, que respondió la ClusterIP. La petición a `ClusterIP:80` la interceptaron las reglas de kube-proxy y la mandaron a un Pod en `:5678`, que respondió "hola desde el backend". `--rm` borra el Pod `tmp` al salir.
+> **¿Qué acaba de pasar?** `curl http://backend` preguntó a CoreDNS, que respondió la ClusterIP. La petición a `ClusterIP:80` la interceptaron las reglas de kube-proxy y la mandaron a un Pod en `:5678`, que respondió "hola desde el backend". `--rm` borra el Pod `tmp` al salir.
 
 ### Ver el balanceo
 
@@ -108,7 +108,7 @@ kubectl run tmp --rm -it --image=busybox:1.36 -n demo --restart=Never -- nslooku
 
 El ClusterIP devuelve **una** IP; el headless devuelve **las IPs de todos los pods**.
 
-> 🧠 **¿Qué acaba de pasar?** Antes de aplicar `headless.yaml`, `backend-headless` no existía y el `nslookup` falló (por eso el `|| true`). Después, como tiene `clusterIP: None`, kube-proxy no crea reglas para él y CoreDNS responde un registro por cada Pod. El balanceo lo hace entonces el cliente, no kube-proxy.
+> **¿Qué acaba de pasar?** Antes de aplicar `headless.yaml`, `backend-headless` no existía y el `nslookup` falló (por eso el `|| true`). Después, como tiene `clusterIP: None`, kube-proxy no crea reglas para él y CoreDNS responde un registro por cada Pod. El balanceo lo hace entonces el cliente, no kube-proxy.
 
 ### Port-forward (para acceder desde Windows)
 
@@ -119,12 +119,12 @@ kubectl port-forward svc/backend 8080:80 -n demo
 
 `port-forward` es tu herramienta de debug diaria, pero **no** es para exponer servicios: eso lo hará Ingress (módulo 07).
 
-> 🧠 **¿Qué acaba de pasar?** `kubectl` abrió el puerto 8080 en Fedora y un túnel por el api-server hasta **un** Pod elegido detrás de `svc/backend` (puerto 80 → targetPort 5678). WSL reenvía `localhost:8080` a Windows. Si cierras el comando o ese Pod muere, el túnel se corta: no hay balanceo.
+> **¿Qué acaba de pasar?** `kubectl` abrió el puerto 8080 en tu máquina y un túnel por el api-server hasta **un** Pod elegido detrás de `svc/backend` (puerto 80 → targetPort 5678). Por eso `localhost:8080` responde en tu navegador. Si cierras el comando o ese Pod muere, el túnel se corta: no hay balanceo.
 
 ```mermaid
 sequenceDiagram
     participant W as Navegador Windows
-    participant K as kubectl port-forward en Fedora
+    participant K as kubectl port-forward en Windows
     participant A as kube-apiserver
     participant KL as kubelet del nodo
     participant P as Pod backend puerto 5678
@@ -141,7 +141,7 @@ sequenceDiagram
 kubectl delete namespace demo
 ```
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Nunca llames a un Pod por IP: usa el **nombre del Service**.
 - Service → selector → Endpoints → Pods *Ready*. Endpoints vacío = selector mal o Pods no Ready.
@@ -164,4 +164,4 @@ kubectl delete namespace demo
 4. `Connection refused` / sin endpoints.
 </details>
 
-➡️ Siguiente: [Módulo 04 — ConfigMaps y Secrets](../04-configmaps-secrets/README.md)
+Siguiente: [Módulo 04 — ConfigMaps y Secrets](../04-configmaps-secrets/README.md)

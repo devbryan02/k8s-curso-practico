@@ -5,7 +5,7 @@
 - Instalar, actualizar, hacer rollback y desinstalar releases.
 - Sobrescribir valores por entorno.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **Chart**: paquete de Helm: carpeta con `Chart.yaml`, `values.yaml` y `templates/`. Aquí, `charts/products-api`.
 - **Template**: YAML de Kubernetes con huecos en sintaxis Go template (`{{ .Values.x }}`) que Helm rellena.
@@ -81,7 +81,7 @@ El chart reemplaza los YAMLs sueltos del módulo 09. Para evitar conflictos, bó
 kubectl delete -f 09-microservicio-spring/k8s/ --ignore-not-found
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Borraste los objetos creados con `kubectl apply`. Helm se niega a instalar sobre objetos que no son suyos (no tienen la etiqueta `app.kubernetes.io/managed-by: Helm` ni sus anotaciones), por eso hay que limpiarlos antes.
+> **¿Qué acaba de pasar?** Borraste los objetos creados con `kubectl apply`. Helm se niega a instalar sobre objetos que no son suyos (no tienen la etiqueta `app.kubernetes.io/managed-by: Helm` ni sus anotaciones), por eso hay que limpiarlos antes.
 
 ### 1. Revisar antes de instalar
 
@@ -92,7 +92,7 @@ helm template products-api charts/products-api -n dev | less      # renderiza si
 helm install products-api charts/products-api -n dev --dry-run --debug | head -80
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `lint` revisó estructura y sintaxis. `template` renderizó en local sin tocar el cluster: ves exactamente el YAML que se aplicaría. `--dry-run --debug` además valida contra la API y muestra los values calculados. Ningún comando creó objetos.
+> **¿Qué acaba de pasar?** `lint` revisó estructura y sintaxis. `template` renderizó en local sin tocar el cluster: ves exactamente el YAML que se aplicaría. `--dry-run --debug` además valida contra la API y muestra los values calculados. Ningún comando creó objetos.
 
 ### 2. Instalar
 
@@ -103,7 +103,7 @@ kubectl get pods -n dev
 curl http://api.localtest.me/api/public/ping
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Helm renderizó el chart, aplicó ConfigMap, Deployment, Service e Ingress en `dev` y guardó la **revisión 1** como Secret (`kubectl get secrets -n dev -l owner=helm`). Luego imprimió `NOTES.txt`. Los pods usan la imagen `products-api:1.0.0` que ya cargaste en kind.
+> **¿Qué acaba de pasar?** Helm renderizó el chart, aplicó ConfigMap, Deployment, Service e Ingress en `dev` y guardó la **revisión 1** como Secret (`kubectl get secrets -n dev -l owner=helm`). Luego imprimió `NOTES.txt`. Los pods usan la imagen `products-api:1.0.0` que ya cargaste en kind.
 
 ### 3. Upgrade con `--set` y con archivo de valores
 
@@ -116,7 +116,7 @@ helm upgrade products-api charts/products-api -n dev -f charts/products-api/valu
 
 > El ejemplo `values-prod-example.yaml` usa `image.tag: 1.0.1`. Constrúyela primero (módulo 09, paso 5) o dará `ErrImagePull`... ¡buena oportunidad para practicar rollback!
 
-> 🧠 **¿Qué acaba de pasar?** Cada `upgrade` volvió a renderizar con los nuevos values, Helm comparó con la revisión anterior y aplicó solo las diferencias: revisión 2 (3 réplicas) y revisión 3 (tag `1.0.1`, más recursos, host `api.prod.localtest.me`). Ojo: el segundo upgrade **no** conserva el `--set replicaCount=3`; cada upgrade parte de `values.yaml` más lo que pases en ese comando (aunque el prod-example también pone 3).
+> **¿Qué acaba de pasar?** Cada `upgrade` volvió a renderizar con los nuevos values, Helm comparó con la revisión anterior y aplicó solo las diferencias: revisión 2 (3 réplicas) y revisión 3 (tag `1.0.1`, más recursos, host `api.prod.localtest.me`). Ojo: el segundo upgrade **no** conserva el `--set replicaCount=3`; cada upgrade parte de `values.yaml` más lo que pases en ese comando (aunque el prod-example también pone 3).
 
 ### 4. Historial y rollback
 
@@ -134,7 +134,7 @@ flowchart LR
     R3 --> R4["Rev 4: rollback a 1, mismo contenido que Rev 1"]
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `rollback` no borra el historial: crea una **revisión nueva** (4) con los manifests guardados de la revisión 1 y los aplica. El Deployment vuelve a `1.0.0` con un rolling update normal. `get values` muestra solo los values que pasaste tú; `get manifest`, el YAML final aplicado.
+> **¿Qué acaba de pasar?** `rollback` no borra el historial: crea una **revisión nueva** (4) con los manifests guardados de la revisión 1 y los aplica. El Deployment vuelve a `1.0.0` con un rolling update normal. `get values` muestra solo los values que pasaste tú; `get manifest`, el YAML final aplicado.
 
 ### 5. Demostrar el `checksum/config`
 
@@ -147,7 +147,7 @@ helm upgrade products-api charts/products-api -n dev --set config.EXTRA_FLAG=tru
 kubectl get pods -n dev -w      # los pods se renuevan porque cambió el ConfigMap
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Kubernetes no reinicia pods cuando cambia un ConfigMap leído con `envFrom`. El template pone en el Pod la anotación `checksum/config` con el SHA-256 del ConfigMap renderizado: si el contenido cambia, cambia la anotación, cambia el template del Deployment y se dispara un rolling update. Mismo contenido = mismo hash = nada que hacer.
+> **¿Qué acaba de pasar?** Kubernetes no reinicia pods cuando cambia un ConfigMap leído con `envFrom`. El template pone en el Pod la anotación `checksum/config` con el SHA-256 del ConfigMap renderizado: si el contenido cambia, cambia la anotación, cambia el template del Deployment y se dispara un rolling update. Mismo contenido = mismo hash = nada que hacer.
 
 ### 6. Desinstalar
 
@@ -157,7 +157,7 @@ helm uninstall products-api -n dev
 
 (Para el módulo 12 volverás a desplegarlo, pero con ArgoCD.)
 
-> 🧠 **¿Qué acaba de pasar?** Helm borró todos los objetos del release y sus Secrets de historial. `mysql-secret`, MySQL y Keycloak siguen ahí porque no pertenecen al chart.
+> **¿Qué acaba de pasar?** Helm borró todos los objetos del release y sus Secrets de historial. `mysql-secret`, MySQL y Keycloak siguen ahí porque no pertenecen al chart.
 
 ## Helm en el trabajo: buenas prácticas
 
@@ -168,7 +168,7 @@ helm uninstall products-api -n dev
 - `helm lint`, `helm template` y `kubeconform` en CI.
 - Prefiere `helm upgrade --install --atomic --timeout 5m` en pipelines: si falla, hace rollback automático.
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Chart = templates + values; release = chart instalado con nombre en un namespace.
 - Prioridad de values: `values.yaml` < `-f archivo` < `--set`. Revisa siempre con `helm template` antes de instalar.
@@ -192,4 +192,4 @@ helm uninstall products-api -n dev
 4. `--atomic` revierte automáticamente al estado anterior al agotarse el timeout.
 </details>
 
-➡️ Siguiente: [Módulo 11 — Observabilidad](../11-observabilidad/README.md)
+Siguiente: [Módulo 11 — Observabilidad](../11-observabilidad/README.md)

@@ -5,7 +5,7 @@
 - Exponer servicios por **host** y por **path** en kind.
 - Usar anotaciones de ingress-nginx.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **Ingress**: objeto con reglas HTTP(S): "si el host es X y el path empieza por Y, envía a este Service". Solo es configuración.
 - **Ingress Controller**: el proxy (aquí ingress-nginx) que lee los Ingress y enruta el tráfico de verdad. Sin él, los Ingress no hacen nada.
@@ -68,7 +68,7 @@ kubectl get pods -n ingress-nginx
 kubectl get ingressclass
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Se creó el namespace `ingress-nginx` con un Deployment del controller (fijado al nodo con `ingress-ready=true`), su RBAC para leer Ingress/Services/Endpoints y la IngressClass `nginx`. Desde ahora nginx escucha en el puerto 80/443 del nodo, que kind enlaza a tu `localhost`.
+> **¿Qué acaba de pasar?** Se creó el namespace `ingress-nginx` con un Deployment del controller (fijado al nodo con `ingress-ready=true`), su RBAC para leer Ingress/Services/Endpoints y la IngressClass `nginx`. Desde ahora nginx escucha en el puerto 80/443 del nodo, que kind enlaza a tu `localhost`.
 
 ### 1. Enrutado por host
 
@@ -84,7 +84,7 @@ curl http://b.localtest.me
 
 > `*.localtest.me` resuelve a `127.0.0.1`. Si no resuelve, usa: `curl -H "Host: a.localtest.me" http://localhost`.
 
-> 🧠 **¿Qué acaba de pasar?** Se crearon dos Deployments (2 réplicas de `http-echo` en el puerto 5678) y sus Services en el puerto 80. El controller detectó el Ingress `por-host` y añadió dos *server blocks* a nginx, uno por host. Ambas peticiones llegan al mismo `localhost:80`; solo cambia la cabecera `Host`, y eso decide a qué app vas.
+> **¿Qué acaba de pasar?** Se crearon dos Deployments (2 réplicas de `http-echo` en el puerto 5678) y sus Services en el puerto 80. El controller detectó el Ingress `por-host` y añadió dos *server blocks* a nginx, uno por host. Ambas peticiones llegan al mismo `localhost:80`; solo cambia la cabecera `Host`, y eso decide a qué app vas.
 
 ### 2. Enrutado por path
 
@@ -95,7 +95,7 @@ curl http://apps.localtest.me/a
 curl http://apps.localtest.me/b
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Ahora hay un solo host, `apps.localtest.me`, y el path decide el destino. La anotación `rewrite-target: /` hace que nginx envíe `/` al backend en lugar de `/a`, porque la app no conoce ese prefijo.
+> **¿Qué acaba de pasar?** Ahora hay un solo host, `apps.localtest.me`, y el path decide el destino. La anotación `rewrite-target: /` hace que nginx envíe `/` al backend en lugar de `/a`, porque la app no conoce ese prefijo.
 
 ```mermaid
 flowchart LR
@@ -114,7 +114,7 @@ kubectl describe ingress por-path -n demo
 kubectl logs -n ingress-nginx -l app.kubernetes.io/component=controller --tail=20
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `describe` muestra las reglas y los endpoints que el Ingress resolvió para cada backend: si salen vacíos, el problema está en el Service o los Pods. Los logs del controller muestran cada petición con host, path, código y a qué IP:puerto se envió.
+> **¿Qué acaba de pasar?** `describe` muestra las reglas y los endpoints que el Ingress resolvió para cada backend: si salen vacíos, el problema está en el Service o los Pods. Los logs del controller muestran cada petición con host, path, código y a qué IP:puerto se envió.
 
 Códigos típicos:
 
@@ -149,7 +149,7 @@ spec:
 ```
 `curl -k https://a.localtest.me`. En producción se usa **cert-manager** + Let's Encrypt.
 
-> 🧠 **¿Qué acaba de pasar?** Generaste un certificado autofirmado y lo guardaste en un Secret TLS. Al referenciarlo en `spec.tls`, el controller termina HTTPS en nginx y reenvía HTTP plano a los Pods. `-k` es necesario porque ninguna CA conocida firmó el certificado.
+> **¿Qué acaba de pasar?** Generaste un certificado autofirmado y lo guardaste en un Secret TLS. Al referenciarlo en `spec.tls`, el controller termina HTTPS en nginx y reenvía HTTP plano a los Pods. `-k` es necesario porque ninguna CA conocida firmó el certificado.
 
 ## Limpieza
 
@@ -157,7 +157,7 @@ spec:
 kubectl delete namespace demo
 ```
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Ingress = reglas; Ingress Controller = el proxy que las aplica. Sin controller no pasa nada.
 - Una sola entrada HTTP(S) para muchas apps, enrutando por host o por path.
@@ -181,4 +181,4 @@ kubectl delete namespace demo
 5. Ingress: L7 básico (HTTP routing, TLS). Gateway API: sucesor más expresivo y portable. API Gateway: añade lógica de negocio (auth, rate-limit, transformaciones) y puede ir *detrás* del Ingress.
 </details>
 
-➡️ Siguiente: [Módulo 08 — Keycloak](../08-keycloak/README.md)
+Siguiente: [Módulo 08 — Keycloak](../08-keycloak/README.md)

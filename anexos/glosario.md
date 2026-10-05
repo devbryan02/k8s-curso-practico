@@ -1,4 +1,4 @@
-# 📖 Glosario del curso
+# Glosario del curso
 
 Definiciones cortas de todos los términos del curso, en orden alfabético. La última columna enlaza al módulo donde se explica con detalle.
 
@@ -25,8 +25,7 @@ Definiciones cortas de todos los términos del curso, en orden alfabético. La �
 | **Control plane** | Cerebro del cluster: api-server, etcd, scheduler y controller-manager. | [01](../01-cluster-kind/README.md) |
 | **CoreDNS** | DNS interno del cluster; resuelve `servicio.namespace.svc.cluster.local`. | [03](../03-services-dns/README.md) |
 | **Deployment** | Gestiona ReplicaSets para hacer updates graduales y rollbacks. Lo que usarás para microservicios. | [02](../02-workloads/README.md) |
-| **Distro WSL** | El Linux instalado en WSL2 (aquí Fedora 44), con su propio sistema de archivos. | [00](../00-preparacion-entorno/README.md) |
-| **Docker Engine** | Demonio `dockerd` que crea contenedores; vive en Fedora o en Docker Desktop. | [00](../00-preparacion-entorno/README.md) |
+| **Docker Engine** | Demonio `dockerd` que crea contenedores; vive en Docker Desktop. | [00](../00-preparacion-entorno/README.md) |
 | **Drain / cordon** | `cordon`: nodo no programable; `drain`: además desaloja sus pods respetando PDBs. | [13](../13-proyecto-final/README.md) |
 | **Drift** | Diferencia entre Git y el cluster (normalmente un cambio manual). | [12](../12-gitops-argocd/README.md) |
 | **Endpoints / EndpointSlice** | Lista de IP:puerto de los Pods *Ready* que coinciden con el selector de un Service. | [03](../03-services-dns/README.md) |
@@ -109,4 +108,3 @@ Definiciones cortas de todos los términos del curso, en orden alfabético. La �
 | **Values** | Parámetros de los templates. Prioridad: `values.yaml` < `-f` < `--set`. | [10](../10-helm/README.md) |
 | **Verb** | Acción sobre la API: get, list, watch, create, update, patch, delete. | [05](../05-rbac-seguridad/README.md) |
 | **volumeClaimTemplates** | Plantilla de PVC de un StatefulSet: un PVC por réplica (`data-mysql-0`…). | [06](../06-persistencia-bases-de-datos/README.md) |
-| **WSL2** | VM ligera de Windows con kernel Linux real donde corre Fedora. | [00](../00-preparacion-entorno/README.md) |

@@ -5,7 +5,7 @@
 - Hacer rolling updates y rollbacks.
 - Configurar `resources`, `readinessProbe` y `livenessProbe`.
 
-## 📖 Definiciones clave
+## Definiciones clave
 
 - **Pod**: unidad mínima que se despliega. 1+ contenedores que comparten IP y volúmenes. Efímero: si muere, no vuelve solo.
 - **ReplicaSet**: controlador que mantiene N Pods iguales vivos. Lo crea el Deployment; casi nunca lo tocas tú.
@@ -73,7 +73,7 @@ kubectl create namespace demo
 cd 02-workloads/manifests
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Un namespace es una "carpeta" lógica dentro del cluster. Todos los manifiestos de este módulo declaran `namespace: demo`, así que borrarlo al final limpia todo de golpe.
+> **¿Qué acaba de pasar?** Un namespace es una "carpeta" lógica dentro del cluster. Todos los manifiestos de este módulo declaran `namespace: demo`, así que borrarlo al final limpia todo de golpe.
 
 ### 1. Un Pod suelto
 
@@ -86,7 +86,7 @@ kubectl exec -it web-pod -n demo -- bash
 kubectl delete pod web-pod -n demo      # no vuelve: no hay controlador
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `apply` guardó el Pod `web-pod` en etcd vía api-server. El scheduler eligió un worker (`-o wide` lo muestra) y el kubelet de ese nodo arrancó `nginx:1.27` con containerd. En `describe` ves esos pasos en *Events*. Al borrarlo, nadie lo recrea: ningún controlador es su "dueño".
+> **¿Qué acaba de pasar?** `apply` guardó el Pod `web-pod` en etcd vía api-server. El scheduler eligió un worker (`-o wide` lo muestra) y el kubelet de ese nodo arrancó `nginx:1.27` con containerd. En `describe` ves esos pasos en *Events*. Al borrarlo, nadie lo recrea: ningún controlador es su "dueño".
 
 ### 2. Un Deployment
 
@@ -102,7 +102,7 @@ kubectl delete pod -n demo -l app=web --wait=false | head -1
 kubectl get pods -n demo -w
 ```
 
-> 🧠 **¿Qué acaba de pasar?** El Deployment `web` creó un ReplicaSet (`web-<hash>`) y este, 3 Pods. Al borrar Pods, el controlador de ReplicaSet vio "hay menos de 3 con `app=web`" y creó otros nuevos al instante, con nombres e IPs distintas. Esto es la **reconciliación**.
+> **¿Qué acaba de pasar?** El Deployment `web` creó un ReplicaSet (`web-<hash>`) y este, 3 Pods. Al borrar Pods, el controlador de ReplicaSet vio "hay menos de 3 con `app=web`" y creó otros nuevos al instante, con nombres e IPs distintas. Esto es la **reconciliación**.
 
 ### 3. Rolling update y rollback
 
@@ -115,7 +115,7 @@ kubectl rollout status deployment/web -n demo
 kubectl rollout history deployment/web -n demo
 ```
 
-> 🧠 **¿Qué acaba de pasar?** Cambiar la imagen modificó el `template`, así que el Deployment creó un **ReplicaSet nuevo**. Con `maxSurge: 1` y `maxUnavailable: 0` subió 1 Pod nuevo, esperó a que estuviera *Ready* y solo entonces bajó 1 viejo. Repitió hasta tener 3 nuevos. El ReplicaSet viejo queda a 0 como revisión del historial.
+> **¿Qué acaba de pasar?** Cambiar la imagen modificó el `template`, así que el Deployment creó un **ReplicaSet nuevo**. Con `maxSurge: 1` y `maxUnavailable: 0` subió 1 Pod nuevo, esperó a que estuviera *Ready* y solo entonces bajó 1 viejo. Repitió hasta tener 3 nuevos. El ReplicaSet viejo queda a 0 como revisión del historial.
 
 ```mermaid
 sequenceDiagram
@@ -143,7 +143,7 @@ kubectl rollout undo deployment/web -n demo
 
 > Esto es lo que te protege en producción: la readiness/imagen mala **nunca** reemplaza a los pods sanos.
 
-> 🧠 **¿Qué acaba de pasar?** El Pod nuevo se quedó en `ErrImagePull`/`ImagePullBackOff`, nunca llegó a *Ready* y el Deployment no bajó ningún Pod viejo. `rollout undo` volvió a escalar el ReplicaSet de la revisión anterior y bajó a 0 el roto.
+> **¿Qué acaba de pasar?** El Pod nuevo se quedó en `ErrImagePull`/`ImagePullBackOff`, nunca llegó a *Ready* y el Deployment no bajó ningún Pod viejo. `rollout undo` volvió a escalar el ReplicaSet de la revisión anterior y bajó a 0 el roto.
 
 ### 4. Escalar
 
@@ -152,7 +152,7 @@ kubectl scale deployment web --replicas=5 -n demo
 kubectl get pods -n demo -o wide     # ¿en qué nodos cayeron?
 ```
 
-> 🧠 **¿Qué acaba de pasar?** `scale` solo cambió `replicas` a 5. El ReplicaSet creó 2 Pods más y el scheduler los repartió entre `curso-worker` y `curso-worker2` según los `requests` y la carga. El control-plane no recibe Pods normales porque tiene un *taint*.
+> **¿Qué acaba de pasar?** `scale` solo cambió `replicas` a 5. El ReplicaSet creó 2 Pods más y el scheduler los repartió entre `curso-worker` y `curso-worker2` según los `requests` y la carga. El control-plane no recibe Pods normales porque tiene un *taint*.
 
 ### 5. Resources y OOMKill (experimento)
 
@@ -165,7 +165,7 @@ kubectl describe pod stress -n demo | grep -A3 "Last State"
 
 Verás `OOMKilled`. Esto te pasará con Java si no ajustas heap vs `limits.memory` (por eso usaremos `MaxRAMPercentage` en el módulo 09).
 
-> 🧠 **¿Qué acaba de pasar?** El kubelet configuró un cgroup con 100Mi de memoria máxima. El proceso intentó reservar 200M, el kernel lo mató (OOM killer) y el kubelet lo reinició una y otra vez hasta `CrashLoopBackOff`. Kubernetes no "avisa" antes: el límite de memoria es un muro.
+> **¿Qué acaba de pasar?** El kubelet configuró un cgroup con 100Mi de memoria máxima. El proceso intentó reservar 200M, el kernel lo mató (OOM killer) y el kubelet lo reinició una y otra vez hasta `CrashLoopBackOff`. Kubernetes no "avisa" antes: el límite de memoria es un muro.
 
 ## Limpieza
 
@@ -173,7 +173,7 @@ Verás `OOMKilled`. Esto te pasará con Java si no ajustas heap vs `limits.memor
 kubectl delete namespace demo
 ```
 
-## ✅ Lo que debes recordar
+## Lo que debes recordar
 
 - Nunca despliegues Pods sueltos: usa un **Deployment**, que crea ReplicaSets, que crean Pods.
 - Cada cambio de `template` = ReplicaSet nuevo = una revisión a la que puedes volver con `rollout undo`.
@@ -197,4 +197,4 @@ kubectl delete namespace demo
 5. K8s envía SIGTERM, espera `terminationGracePeriodSeconds` (30 s por defecto) y luego SIGKILL. Spring Boot soporta `server.shutdown=graceful`.
 </details>
 
-➡️ Siguiente: [Módulo 03 — Services y DNS](../03-services-dns/README.md)
+Siguiente: [Módulo 03 — Services y DNS](../03-services-dns/README.md)

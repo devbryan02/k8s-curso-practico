@@ -116,7 +116,7 @@ alias k=kubectl
 complete -o default -F __start_kubectl k
 source <(helm completion bash)
 source <(kind completion bash)
-export do="--dry-run=client -o yaml"   # uso: k run x --image=nginx $do
+export do="--dry-run=client -o yaml"   # uso: k create deployment x --image=nginx $do
 ```
 
 Luego `source ~/.bashrc`.
@@ -132,7 +132,7 @@ kubectl completion powershell | Out-String | Invoke-Expression
 
 En PowerShell no existe `$do`: escribe `--dry-run=client -o yaml` completo.
 
-> **¿Qué acaba de pasar?** `kubectl completion` genera funciones de autocompletado que tu terminal carga al iniciar. El alias `k` es un atajo. `--dry-run=client -o yaml` genera YAML sin crear nada en el cluster.
+> **¿Qué acaba de pasar?** `kubectl completion` genera funciones de autocompletado que tu terminal carga al iniciar. El alias `k` es un atajo. `--dry-run=client -o yaml` genera YAML sin crear nada. Ojo: según el comando, kubectl sigue necesitando hablar con un cluster para descubrir las APIs (`k run` falla sin cluster con `dial tcp [::1]:8080`); `k create deployment` no.
 
 ## Lo que debes recordar
 
@@ -156,7 +156,7 @@ En PowerShell no existe `$do`: escribe `--dry-run=client -o yaml` completo.
 ## Ejercicios
 
 1. Crea el alias `k` y verifica que `k version --client` funciona.
-2. Genera un YAML de Pod sin crearlo: `k run web --image=nginx --dry-run=client -o yaml`. ¿Qué campos reconoces?
+2. Genera un YAML sin crearlo: `k create deployment web --image=nginx --dry-run=client -o yaml`. ¿Qué campos reconoces? (Funciona sin cluster. `k run ... --dry-run=client` en cambio sí consulta el cluster, así que pruébalo en el módulo 01, cuando ya tengas uno.)
 3. Ejecuta `docker run --rm -p 8080:80 nginx` y abre `http://localhost:8080` en el navegador. ¿Funciona?
 
 <details><summary>Pistas</summary>

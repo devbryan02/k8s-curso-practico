@@ -99,7 +99,7 @@ kubectl get pods -n dev
 ```bash
 cd 09-microservicio-spring/app
 docker build -t products-api:1.0.0 .
-kind load docker-image products-api:1.0.0 --name curso
+./scripts/kind-load.sh products-api:1.0.0
 ```
 
 (La primera build tarda: descarga Maven y dependencias.)
@@ -155,7 +155,7 @@ Modifica algo (ej. mensaje del ping) y:
 ```bash
 cd app
 docker build -t products-api:1.0.1 .
-kind load docker-image products-api:1.0.1 --name curso
+./scripts/kind-load.sh products-api:1.0.1
 kubectl set image deploy/products-api products-api=products-api:1.0.1 -n dev
 kubectl rollout status deploy/products-api -n dev
 ```

@@ -70,6 +70,7 @@ kubectl get endpoints <svc> -n <ns>              # ¿hay pods detrás del Servic
 | `kind create cluster` falla por puerto 80/443 | Cambia `hostPort` (p. ej. 8080/8443) y usa `http://api.localtest.me:8080` |
 | Mucha RAM / Docker lento | Docker Desktop → *Settings → Resources* (o `.wslconfig`: `memory=8GB`); baja réplicas; apaga monitoring |
 | Los datos desaparecen | Recrear el cluster borra los volúmenes (viven en los contenedores de los nodos) |
+| `kind load docker-image` falla con `ctr: content digest ... not found` | Docker Desktop usa el almacén de imágenes de containerd. Usa `./scripts/kind-load.sh imagen:tag` (ver módulo 01) |
 | Imagen "no se actualiza" | Cambia el tag y repite `kind load docker-image` |
 | Docker Desktop reiniciado → cluster raro | `docker ps -a`; `docker start curso-control-plane curso-worker curso-worker2` o recrea |
 

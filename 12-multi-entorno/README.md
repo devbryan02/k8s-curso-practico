@@ -150,7 +150,7 @@ Simula llevar una versión nueva de `dev` a `qa`, la parte central de trabajar c
 ```bash
 # 1. Construye una versión nueva (módulo 09, paso 5) y cárgala en kind
 docker tag products-api:1.0.0 products-api:1.0.1
-kind load docker-image products-api:1.0.1 --name curso
+./scripts/kind-load.sh products-api:1.0.1
 
 # 2. Despliégala solo en dev
 helm upgrade products-api 10-helm/charts/products-api -n dev \

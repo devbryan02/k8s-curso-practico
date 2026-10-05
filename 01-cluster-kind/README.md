@@ -66,7 +66,7 @@ flowchart LR
 
 Consecuencias importantes:
 
-1. Las imágenes que construyes con `docker build` **no están** dentro de los nodos. Hay que hacer `kind load docker-image`.
+1. Las imágenes que construyes con `docker build` **no están** dentro de los nodos. Hay que cargarlas con `kind load` (en el curso, con `./scripts/kind-load.sh`).
 2. Los puertos del cluster no se exponen solos: hay que mapearlos en la config (`extraPortMappings`).
 3. El storage por defecto es `local-path` (`StorageClass standard`): los datos viven dentro del contenedor del nodo.
 4. No hay LoadBalancer real (existe `cloud-provider-kind` / MetalLB, pero no los usaremos).
@@ -143,7 +143,7 @@ kubectl config current-context
 ```bash
 docker pull nginx:1.27
 docker tag nginx:1.27 mi-nginx:local
-kind load docker-image mi-nginx:local --name curso
+./scripts/kind-load.sh mi-nginx:local
 
 # Verifica que esté en el nodo
 docker exec curso-worker crictl images | grep mi-nginx
@@ -151,7 +151,9 @@ docker exec curso-worker crictl images | grep mi-nginx
 
 Regla de oro: usa un **tag explícito** (no `latest`) y `imagePullPolicy: IfNotPresent`, si no Kubernetes intentará bajarla de internet y fallará con `ErrImagePull`.
 
-> **¿Qué acaba de pasar?** `kind load` exporta la imagen de tu Docker y la importa en el `containerd` de **cada** nodo. Así, cuando el kubelet necesite `mi-nginx:local`, la encuentra en local y no intenta descargarla de un registry.
+> **¿Qué acaba de pasar?** El script exporta la imagen de tu Docker a un `.tar` (`docker save`) y la importa en el `containerd` de **cada** nodo (`kind load image-archive`). Así, cuando el kubelet necesite `mi-nginx:local`, la encuentra en local y no intenta descargarla de un registry.
+
+> **¿Por qué no `kind load docker-image`?** Es el comando habitual y funciona en muchos entornos, pero con Docker Desktop reciente (que guarda las imágenes con containerd) falla con `ctr: content digest sha256:... not found`. Docker exporta una imagen multiplataforma cuyas capas de otras arquitecturas no tiene, y el import de los nodos las exige. `docker save --platform linux/amd64` exporta solo la tuya. Para ver si te afecta: `docker info | grep -i driver-type` muestra `io.containerd.snapshotter.v1`.
 
 ```mermaid
 flowchart LR
@@ -175,7 +177,7 @@ Desde la raíz del curso:
 
 - Cada nodo kind es un contenedor Docker con kubelet + containerd dentro.
 - Todo pasa por el **kube-apiserver**; el estado vive en **etcd**; scheduler y controladores reconcilian.
-- Imágenes locales: `kind load docker-image` con tag explícito, nunca `latest`.
+- Imágenes locales: `./scripts/kind-load.sh imagen:tag` con tag explícito, nunca `latest`.
 - Puertos hacia Windows: solo los de `extraPortMappings` (80/443 en el control-plane).
 - Antes de aplicar nada: `kubectl config current-context`.
 

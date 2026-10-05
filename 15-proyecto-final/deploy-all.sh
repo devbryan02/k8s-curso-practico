@@ -19,7 +19,7 @@ kubectl rollout status deploy/keycloak -n dev --timeout=400s
 
 echo "== 4/6 Imagen del microservicio =="
 docker build -t products-api:1.0.0 09-microservicio-spring/app
-kind load docker-image products-api:1.0.0 --name curso
+./scripts/kind-load.sh products-api:1.0.0
 
 echo "== 5/6 Microservicio =="
 kubectl apply -f 09-microservicio-spring/k8s/
